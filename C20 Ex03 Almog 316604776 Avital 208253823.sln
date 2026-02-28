@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30002.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Invaders", "Invaders\Invaders.csproj", "{7E34F4D1-8E28-458D-8C92-963613B51616}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{643E79D0-2DAE-4379-8398-F5BFE057FBE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14D0CD3E-DC09-4623-979C-E708BF50A86C}"
+	ProjectSection(SolutionItems) = preProject
+		Report.txt = Report.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E34F4D1-8E28-458D-8C92-963613B51616}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E34F4D1-8E28-458D-8C92-963613B51616}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E34F4D1-8E28-458D-8C92-963613B51616}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E34F4D1-8E28-458D-8C92-963613B51616}.Release|Any CPU.Build.0 = Release|Any CPU
+		{643E79D0-2DAE-4379-8398-F5BFE057FBE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{643E79D0-2DAE-4379-8398-F5BFE057FBE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{643E79D0-2DAE-4379-8398-F5BFE057FBE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{643E79D0-2DAE-4379-8398-F5BFE057FBE6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38CD5E9B-6380-4D8A-B2DD-88DB15CA18AE}
+	EndGlobalSection
+EndGlobal
