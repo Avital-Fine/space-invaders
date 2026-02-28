@@ -68,7 +68,3 @@ space-invaders/
 ├── Invaders.sln           # Solution file
 └── README.md              # This file
 ```
-
-## License
-
-[MIT License](LICENSE)

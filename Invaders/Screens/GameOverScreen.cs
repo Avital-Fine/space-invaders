@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Infrastructure.ObjectModel;
 using Infrastructure.ObjectModel.Screens;
+using Invaders.Managers;
 
 namespace Invaders.Screens
 {
@@ -14,7 +15,7 @@ namespace Invaders.Screens
 
         private const string k_FontType = "Consolas";
         private readonly Keys r_MainMenuTrigger = Keys.M;
-        private readonly Keys r_NewGameTrigger = Keys.Home;
+        private readonly Keys r_NewGameTrigger = Keys.Enter;
         private readonly Headline r_GameOverMessage;
         private readonly Text r_ScoresMessage;
         private readonly Text r_InfoMessage;
@@ -25,7 +26,7 @@ namespace Invaders.Screens
         {
             r_GameOverMessage = new Headline(this, k_FontType, "Game Over");
             r_ScoresMessage = new Text(this, k_FontType);
-            r_InfoMessage = new Text(this, k_FontType, @"Press 'Home' to Start
+            r_InfoMessage = new Text(this, k_FontType, @"Press 'Enter' to Start
 Press 'M' for Main Menu
 Press 'Esc' for Exit");
             r_MainMenu = new MainMenuScreen(i_Game);
@@ -61,12 +62,13 @@ Press 'Esc' for Exit");
         public void SetScoreInfo(int[] i_Scores)
         {
             StringBuilder scores = new StringBuilder();
+            string[] names = Managers.PlayersManager.PlayerNames;
             int maxScore = 0;
             int winnerIdx = 0;
 
             for (int i = 0; i < i_Scores.Length; i++)
             {
-                scores.AppendFormat(@"P{0}: {1} Score{2}", (i + 1), i_Scores[i].ToString(), Environment.NewLine);
+                scores.AppendFormat(@"{0}: {1} Score{2}", names[i], i_Scores[i].ToString(), Environment.NewLine);
 
                 if (i_Scores[i] > maxScore)
                 {
@@ -75,11 +77,15 @@ Press 'Esc' for Exit");
                 }
             }
 
-            StringBuilder whoWins = new StringBuilder(string.Format(@"The Winner Is P{0}!", winnerIdx + 1));
-            whoWins.Append(Environment.NewLine).Append(scores);
-            r_ScoresMessage.Content = whoWins.ToString();
-            r_ScoresMessage.Initialize();
-            this.Initialize();
+            StringBuilder result = new StringBuilder();
+            if (i_Scores.Length > 1)
+            {
+                result.AppendFormat("The winner is {0}!", names[winnerIdx]);
+                result.Append(Environment.NewLine);
+            }
+            result.Append(scores);
+            r_ScoresMessage.Content = result.ToString();
+            setPosition();
         }
 
         public override void Update(GameTime gameTime)

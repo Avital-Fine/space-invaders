@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Infrastructure.ObjectModel;
 using Infrastructure.ObjectModel.Screens;
 using Invaders.Interfaces;
+using Invaders.Managers;
 
 namespace Invaders.Sprites
 {
@@ -109,13 +110,13 @@ namespace Invaders.Sprites
         {
             base.Update(gameTime);
 
-            r_Text.Content = string.Format("P{0} Score: {1}", r_Index, m_Score);
+            r_Text.Content = string.Format("{0}: {1}", Managers.PlayersManager.PlayerNames[r_Index - 1], m_Score);
         }
 
         private void ship_ShipHitByEnemy(object sender, EventArgs e)
         {
             m_RemainingLives--;
-            m_Score = Math.Clamp(m_Score - 600, 0, m_Score);
+            m_Score = Math.Clamp(m_Score - 200, 0, m_Score);
             r_Lives[m_RemainingLives].RemoveFromScreen();
 
             if (m_RemainingLives > 0)

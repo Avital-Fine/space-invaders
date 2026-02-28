@@ -13,6 +13,7 @@ namespace Invaders.Managers
         private static int m_ActivePlayers;
         private static int[] s_Scores;
         private static int[] s_LivesPerPlayer;
+        private static string[] s_PlayerNames;
 
         public static int[] Scores { get { return s_Scores; } }
         public static int[] LivesPerPlayer { get { return s_LivesPerPlayer; } }
@@ -23,6 +24,13 @@ namespace Invaders.Managers
             r_PlayScreen = i_PlayScreen;
             r_Players = newPlayers();
         }
+
+        public static void SetPlayerNames(string[] i_PlayerNames)
+        {
+            s_PlayerNames = i_PlayerNames;
+        }
+
+        public static string[] PlayerNames { get { return s_PlayerNames; } }
 
         public static void InitPlayersManager(int i_NumberOfPlayers)
         {

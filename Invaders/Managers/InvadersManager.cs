@@ -9,6 +9,7 @@ namespace Invaders.Managers
 {
     public class InvadersManager : BaseGame
     {
+        private readonly ScoresDatabase r_ScoresDatabase;
         private const string k_BGTextureAssert = @"Sprites\BG_Space01_1024x768";
         private const string k_BGSoundAssert = @"Sounds\BGMusic";
         private const string k_MenuTransitionSoundAssert = @"Sounds\MenuMove";
@@ -18,6 +19,7 @@ namespace Invaders.Managers
         private readonly GameOverScreen r_GameOverScreen;
         private int m_CurrentLevel;
         private PlayScreen m_PlayScreen;
+        private NameEntryScreen m_NameEntryScreen;
         private eNumberOfPlayers m_NumberOfPlayers = eNumberOfPlayers.OnePlayer;
 
         public InvadersManager()
@@ -27,6 +29,7 @@ namespace Invaders.Managers
             r_WelcomeScreen = new WelcomeScreen(this);
             r_TransitionScreen = new LevelTransitionScreen(this, m_CurrentLevel);
             r_GameOverScreen = new GameOverScreen(this);
+            r_ScoresDatabase = new ScoresDatabase();
             this.Components.Add(r_Background);
         }
 
@@ -52,8 +55,32 @@ namespace Invaders.Managers
 
         private void newGame()
         {
-            m_CurrentLevel = 1;
             r_Background.TintColor = Color.White;
+
+            if (PlayersManager.PlayerNames != null && PlayersManager.PlayerNames.Length == (int)m_NumberOfPlayers)
+            {
+                // Names already set — skip name entry
+                startGame();
+            }
+            else
+            {
+                // First time — ask for names
+                m_NameEntryScreen = new NameEntryScreen(this, m_NumberOfPlayers);
+                m_NameEntryScreen.NamesEntered += enterNameScreen_NamesEntered;
+                ScreensMananger.Push(m_NameEntryScreen);
+                ScreensMananger.SetCurrentScreen(m_NameEntryScreen);
+            }
+        }
+
+        private void enterNameScreen_NamesEntered(string[] i_PlayerNames)
+        {
+            PlayersManager.SetPlayerNames(i_PlayerNames);
+            startGame();
+        }
+
+        private void startGame()
+        {
+            m_CurrentLevel = 1;
             setPlayScreen();
         }
 
@@ -68,6 +95,11 @@ namespace Invaders.Managers
 
         private void mainMenu_DefineSettings(eNumberOfPlayers i_NumberOfPlayers)
         {
+            if (m_NumberOfPlayers != i_NumberOfPlayers)
+            {
+                PlayersManager.SetPlayerNames(null);
+            }
+
             m_NumberOfPlayers = i_NumberOfPlayers;
             newGame();
         }
@@ -83,6 +115,11 @@ namespace Invaders.Managers
             {
                 r_Background.TintColor = Color.IndianRed;
                 r_GameOverScreen.SetScoreInfo(PlayersManager.Scores);
+                // save scores to database
+                for (int i = 0; i < PlayersManager.Scores.Length; i++)
+                {
+                    r_ScoresDatabase.SaveScore(PlayersManager.PlayerNames[i], PlayersManager.Scores[i], m_CurrentLevel);
+                }
             }
         }
     }

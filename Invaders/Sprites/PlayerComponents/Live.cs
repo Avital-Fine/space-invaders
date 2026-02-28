@@ -7,7 +7,7 @@ namespace Invaders.Sprites
 {
     public class Live : Sprite
     {
-        private const float k_Opacity = 0.5f;
+        private const float k_Opacity = 0.8f;
         private readonly Vector2 r_Scale = new Vector2(0.5f, 0.5f);
         private readonly Player r_Player;
         private readonly int r_LiveIdx;
