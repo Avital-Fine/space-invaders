@@ -27,4 +27,9 @@
     <Folder Include="Content\Sounds\" />
     <Folder Include="Sprites\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="appconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
