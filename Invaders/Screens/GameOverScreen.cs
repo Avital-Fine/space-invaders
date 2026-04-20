@@ -12,6 +12,7 @@ namespace Invaders.Screens
     {
         public event Action StartNewGame;
         public event Action<eNumberOfPlayers> DefineSettings;
+        public event Action BackToDashboard;
 
         private const string k_FontType = "Consolas";
         private readonly Keys r_MainMenuTrigger = Keys.M;
@@ -28,7 +29,7 @@ namespace Invaders.Screens
             r_ScoresMessage = new Text(this, k_FontType);
             r_InfoMessage = new Text(this, k_FontType, @"Press 'Enter' to Start
 Press 'M' for Main Menu
-Press 'Esc' for Exit");
+Press 'Esc' to return to Dashboard");
             r_MainMenu = new MainMenuScreen(i_Game);
         }
 
@@ -36,10 +37,12 @@ Press 'Esc' for Exit");
         {
             base.Initialize();
 
-            if (r_MainMenu.DefineSettings == null) 
-            { 
-                r_MainMenu.DefineSettings += onDefineSettings; 
+            if (r_MainMenu.DefineSettings == null)
+            {
+                r_MainMenu.DefineSettings += onDefineSettings;
             }
+
+            r_MainMenu.BackToDashboard += onMainMenuBackToDashboard;
 
             Game.Window.ClientSizeChanged += window_ClientSizeChanged;
             r_GameOverMessage.Scales = new Vector2(3, 3);
@@ -94,7 +97,8 @@ Press 'Esc' for Exit");
 
             if (InputManager.KeyPressed(Keys.Escape))
             {
-                Game.Exit();
+                ExitScreen();
+                BackToDashboard?.Invoke();
             }
             else if (InputManager.KeyPressed(r_MainMenuTrigger))
             {
@@ -125,6 +129,12 @@ Press 'Esc' for Exit");
             {
                 StartNewGame.Invoke();
             }
+        }
+
+        private void onMainMenuBackToDashboard()
+        {
+            ExitScreen();
+            BackToDashboard?.Invoke();
         }
     }
 }

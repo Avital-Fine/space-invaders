@@ -10,13 +10,19 @@ namespace Invaders.Managers
     public class InvadersManager : BaseGame
     {
         private readonly ScoresDatabase r_ScoresDatabase;
-        private const string k_BGTextureAssert = @"Sprites\BG_Space01_1024x768";
-        private const string k_BGSoundAssert = @"Sounds\BGMusic";
+        private const string k_SpaceBGTexture           = @"Sprites\BG_Space01_1024x768";
+        private const string k_DashboardBGTexture        = @"Screens\BG_Dashboard";
+        private const string k_BGSoundAssert             = @"Sounds\BGMusic";
         private const string k_MenuTransitionSoundAssert = @"Sounds\MenuMove";
-        private readonly Background r_Background;
+        private const string k_DashboardTitle            = "Game Dashboard";
+        private const string k_SpaceInvadersTitle        = "Space Invaders";
+
+        private readonly Background r_SpaceBackground;
+        private readonly Background r_DashboardBackground;
+        private readonly GamePickerScreen r_GamePickerScreen;
         private readonly WelcomeScreen r_WelcomeScreen;
         private readonly LevelTransitionScreen r_TransitionScreen;
-        private readonly GameOverScreen r_GameOverScreen;
+        private GameOverScreen m_GameOverScreen;   // recreated on each return to dashboard
         private int m_CurrentLevel;
         private PlayScreen m_PlayScreen;
         private NameEntryScreen m_NameEntryScreen;
@@ -25,24 +31,70 @@ namespace Invaders.Managers
         public InvadersManager()
         {
             m_CurrentLevel = 0;
-            r_Background = new Background(this, k_BGTextureAssert);
-            r_WelcomeScreen = new WelcomeScreen(this);
+
+            r_DashboardBackground = new Background(this, k_DashboardBGTexture);
+
+            r_SpaceBackground = new Background(this, k_SpaceBGTexture);
+            r_SpaceBackground.Visible = false;
+
+            r_GamePickerScreen = new GamePickerScreen(this);
+            r_WelcomeScreen    = new WelcomeScreen(this);
             r_TransitionScreen = new LevelTransitionScreen(this, m_CurrentLevel);
-            r_GameOverScreen = new GameOverScreen(this);
-            r_ScoresDatabase = new ScoresDatabase();
-            this.Components.Add(r_Background);
+            r_ScoresDatabase   = new ScoresDatabase();
+
+            this.Components.Add(r_DashboardBackground);
+            this.Components.Add(r_SpaceBackground);
         }
 
         protected override void Initialize()
         {
             base.Initialize();
 
-            r_WelcomeScreen.DefineSettings += mainMenu_DefineSettings;
-            r_GameOverScreen.DefineSettings += mainMenu_DefineSettings;
-            r_GameOverScreen.StartNewGame += newGame;
+            createGameOverScreen();
 
-            ScreensMananger.Push(r_GameOverScreen);
+            r_WelcomeScreen.DefineSettings   += mainMenu_DefineSettings;
+            r_WelcomeScreen.BackToDashboard  += returnToDashboard;
+            r_GamePickerScreen.SpaceInvadersSelected += launchSpaceInvaders;
+
+            Window.Title = k_DashboardTitle;
+            ScreensMananger.SetCurrentScreen(r_GamePickerScreen);
+        }
+
+        private void createGameOverScreen()
+        {
+            m_GameOverScreen = new GameOverScreen(this);
+            m_GameOverScreen.DefineSettings  += mainMenu_DefineSettings;
+            m_GameOverScreen.StartNewGame    += newGame;
+            m_GameOverScreen.BackToDashboard += returnToDashboard;
+        }
+
+        private void launchSpaceInvaders()
+        {
+            Window.Title = k_SpaceInvadersTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = true;
+            r_SpaceBackground.TintColor   = Color.White;
+
+            ScreensMananger.Push(m_GameOverScreen);
             ScreensMananger.SetCurrentScreen(r_WelcomeScreen);
+        }
+
+        private void returnToDashboard()
+        {
+            // GameOverScreen may already be closed if it fired BackToDashboard itself.
+            // Only close it when it is still active in the stack.
+            if (m_GameOverScreen.Enabled)
+            {
+                m_GameOverScreen.Close();
+            }
+
+            // Restore dashboard visuals and title
+            r_SpaceBackground.Visible     = false;
+            r_DashboardBackground.Visible = true;
+            Window.Title = k_DashboardTitle;
+
+            // Fresh GameOverScreen for the next Space Invaders session
+            createGameOverScreen();
         }
 
         protected override void LoadContent()
@@ -55,16 +107,14 @@ namespace Invaders.Managers
 
         private void newGame()
         {
-            r_Background.TintColor = Color.White;
+            r_SpaceBackground.TintColor = Color.White;
 
             if (PlayersManager.PlayerNames != null && PlayersManager.PlayerNames.Length == (int)m_NumberOfPlayers)
             {
-                // Names already set — skip name entry
                 startGame();
             }
             else
             {
-                // First time — ask for names
                 m_NameEntryScreen = new NameEntryScreen(this, m_NumberOfPlayers);
                 m_NameEntryScreen.NamesEntered += enterNameScreen_NamesEntered;
                 ScreensMananger.Push(m_NameEntryScreen);
@@ -87,7 +137,8 @@ namespace Invaders.Managers
         private void setPlayScreen()
         {
             m_PlayScreen = new PlayScreen(this, m_CurrentLevel, m_NumberOfPlayers);
-            m_PlayScreen.EndLevel += playScreen_EndLevel;
+            m_PlayScreen.EndLevel        += playScreen_EndLevel;
+            m_PlayScreen.BackToDashboard += returnToDashboard;
             r_TransitionScreen.RestartLevel(m_CurrentLevel);
             ScreensMananger.Push(m_PlayScreen);
             ScreensMananger.SetCurrentScreen(r_TransitionScreen);
@@ -113,9 +164,8 @@ namespace Invaders.Managers
             }
             else
             {
-                r_Background.TintColor = Color.IndianRed;
-                r_GameOverScreen.SetScoreInfo(PlayersManager.Scores);
-                // save scores to database
+                r_SpaceBackground.TintColor = Color.IndianRed;
+                m_GameOverScreen.SetScoreInfo(PlayersManager.Scores);
                 for (int i = 0; i < PlayersManager.Scores.Length; i++)
                 {
                     r_ScoresDatabase.SaveScore(PlayersManager.PlayerNames[i], PlayersManager.Scores[i], m_CurrentLevel);

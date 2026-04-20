@@ -1,58 +1,50 @@
+using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Infrastructure.ObjectModel;
+using Infrastructure;
 using Infrastructure.ObjectModel.Screens;
 
 namespace Invaders.Screens
 {
-    public class GamePauseScreen : GameScreen
+    public class GamePauseScreen : MenuScreen
     {
-        private const string k_FontType = "Consolas";
-        private const float k_BlackTintAlpha = 0.4f;
-        private readonly Keys r_ResumeTrigger = Keys.R;
-        private readonly Headline r_PauseText;
-        private readonly Text r_ExitText;
+        public event Action BackToDashboard;
 
-        public GamePauseScreen(Game i_Game) : base(i_Game)
+        private const string k_Title         = "Game Paused";
+        private const float  k_BlackTintAlpha = 0.55f;
+
+        private readonly MenuItem r_Resume;
+        private readonly MenuItem r_Mute;
+        private readonly MenuItem r_QuitToDashboard;
+
+        public GamePauseScreen(Game i_Game) : base(i_Game, k_Title)
         {
-            r_PauseText = new Headline(this, k_FontType, @"Pause");
-            r_ExitText = new Text(this, k_FontType, @"Press 'R' to Resume Game");
+            r_Resume          = new MenuItem(this, "Resume");
+            r_Mute            = new MenuItem(this, "Mute / Unmute");
+            r_QuitToDashboard = new MenuItem(this, "Quit to Dashboard");
         }
 
         public override void Initialize()
         {
             base.Initialize();
 
-            this.IsModal = true;
-            this.IsOverlayed = true;
-            this.UseGradientBackground = false;
+            this.IsModal      = true;
+            this.IsOverlayed  = true;
             this.BlackTintAlpha = k_BlackTintAlpha;
-            r_ExitText.Centralize();
-            Game.Window.ClientSizeChanged += window_ClientSizeChanged;
+
+            r_Resume.Clicked         += ExitScreen;
+            r_Mute.Clicked           += mute_Clicked;
+            r_QuitToDashboard.Clicked += quitToDashboard_Clicked;
         }
 
-        private void window_ClientSizeChanged(object sender, System.EventArgs e)
+        private void mute_Clicked()
         {
-            r_ExitText.Centralize();
+            (Game as BaseGame).SoundsManager.MuteToggle();
         }
 
-        private bool m_EscIsReleased = false;
-
-        public override void Update(GameTime gameTime)
+        private void quitToDashboard_Clicked()
         {
-            base.Update(gameTime);
-
-            if (InputManager.KeyboardState.IsKeyUp(Keys.Escape))
-            {
-                m_EscIsReleased = true;
-            }
-
-            if (InputManager.KeyPressed(r_ResumeTrigger) || (m_EscIsReleased && InputManager.KeyPressed(Keys.Escape)))
-            {
-                m_EscIsReleased = false;
-                this.ExitScreen();
-            }
+            ExitScreen();
+            BackToDashboard?.Invoke();
         }
     }
 }
-

@@ -13,13 +13,14 @@ namespace Invaders.Screens
     public class PlayScreen : GameScreen
     {
         public event Action<bool> EndLevel;
+        public event Action BackToDashboard;
 
         private static readonly string sr_GameOverAssetSound = @"Sounds\GameOver";
         private static SoundEffectInstance s_GameOverSound;
         private static bool s_SoundLoaded = false;
-        private readonly Keys r_PauseTriggerP = Keys.P;
+        private readonly Keys r_PauseTriggerP   = Keys.P;
         private readonly Keys r_PauseTriggerEsc = Keys.Escape;
-        private readonly Keys r_MuteTrigger = Keys.M;
+        private readonly Keys r_MuteTrigger     = Keys.M;
         
         private int m_NumberOfPlayers = 1;
         private const int k_NumberOfLevels = 4;
@@ -57,6 +58,7 @@ namespace Invaders.Screens
         {
             initEnemiesValues();
             r_EnemiesForce.EndLevel += enemiesForce_EndLevel;
+            r_GameInstructionsScreen.BackToDashboard += onBackToDashboard;
 
             if (r_Level > eLevel.Level1)
             {
@@ -152,6 +154,12 @@ namespace Invaders.Screens
             {
                 EndLevel.Invoke(i_IsWin);
             }
+        }
+
+        private void onBackToDashboard()
+        {
+            ExitScreen();
+            BackToDashboard?.Invoke();
         }
     }
 }

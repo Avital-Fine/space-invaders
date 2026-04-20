@@ -36,6 +36,8 @@ namespace Infrastructure.ObjectModel.Screens
         }
         public float Height {  get {  return r_Button.Height; }}
         public float Width {  get {  return r_Button.Width; }}
+        public Color TextColor { set { r_Text.TintColor = value; } }
+        public Color ButtonTintColor { set { r_Button.TintColor = value; } }
         public int ListIndex { get { return m_ListIndex; } set { m_ListIndex = value; } }
         public bool HasFocus 
         { 

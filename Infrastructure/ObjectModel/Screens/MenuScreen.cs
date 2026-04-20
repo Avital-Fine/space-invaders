@@ -14,7 +14,7 @@ namespace Infrastructure.ObjectModel.Screens
         private readonly Keys r_NextTrigger = Keys.Up;
         private readonly Keys r_PrevTrigger = Keys.Down;
         private readonly Keys r_BackTrigger = Keys.Escape;
-        private readonly Headline r_Title;
+        protected readonly Headline r_Title;
         private int m_ActiveItemIndex = 0;
         private static SoundEffectInstance s_TransitionSoundEffect;
 

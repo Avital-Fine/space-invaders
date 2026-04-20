@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,17 +11,16 @@ namespace Invaders.Screens
     public class WelcomeScreen : GameScreen
     {
         public event Action<eNumberOfPlayers> DefineSettings;
+        public event Action BackToDashboard;
 
         private const string k_FontType = "Consolas";
         private readonly Keys r_PlayTrigger = Keys.Enter;
         private readonly Keys r_MenuTrigger = Keys.M;
-        private readonly Keys r_FacebookTrigger = Keys.F;
-        private readonly Keys r_ExitTrigger = Keys.Escape;
+        private readonly Keys r_BackTrigger = Keys.Escape;
         private readonly MainMenuScreen r_MainMenu;
         private readonly Text r_WelcomeMessage;
         private readonly Text r_InfoMessage;
-        private readonly Text r_LoginStatus;
-        private readonly FacebookManager r_FacebookManager;
+        private bool m_JustActivated;
 
         public WelcomeScreen(Game i_Game)
             : base (i_Game)
@@ -32,34 +29,19 @@ namespace Invaders.Screens
 To Space Invaders");
             r_InfoMessage = new Text(this, k_FontType, @"Press 'Enter' to Start
 Press 'M' for Main Menu
-Press 'F' for Facebook Login
-Press 'Esc' for Exit");
-            r_LoginStatus = new Text(this, k_FontType, string.Empty);
+Press 'Esc' to return to Dashboard");
             r_MainMenu = new MainMenuScreen(i_Game);
-            r_FacebookManager = new FacebookManager(loadAppId());
-        }
-
-        private static string loadAppId()
-        {
-            string configPath = "appconfig.json";
-            if (File.Exists(configPath))
-            {
-                string json = File.ReadAllText(configPath);
-                using JsonDocument doc = JsonDocument.Parse(json);
-                return doc.RootElement.GetProperty("Facebook").GetProperty("AppId").GetString();
-            }
-            return string.Empty;
         }
 
         public override void Initialize()
         {
             base.Initialize();
-            
+
             this.BlendState = BlendState.NonPremultiplied;
-            r_MainMenu.DefineSettings += onDefineSettings;
+            r_MainMenu.DefineSettings  += onDefineSettings;
+            r_MainMenu.BackToDashboard += onMainMenuBackToDashboard;
             setWelcomeMsg();
             setInfoMsg();
-            setLoginStatusMsg();
         }
 
         private void setWelcomeMsg()
@@ -75,14 +57,20 @@ Press 'Esc' for Exit");
             r_InfoMessage.Position = r_WelcomeMessage.Position + new Vector2(0, (float)(r_WelcomeMessage.Height * 1.5));
         }
 
-        private void setLoginStatusMsg()
+        protected override void OnActivated()
         {
-            r_LoginStatus.TintColor = Color.DarkBlue;
-            r_LoginStatus.Position = r_InfoMessage.Position + new Vector2(0, r_InfoMessage.Height + 20);
+            base.OnActivated();
+            m_JustActivated = true;
         }
 
         public override void Update(GameTime gameTime)
         {
+            if (m_JustActivated)
+            {
+                m_JustActivated = false;
+                return;
+            }
+
             base.Update(gameTime);
 
             if (InputManager.KeyPressed(r_PlayTrigger))
@@ -95,20 +83,10 @@ Press 'Esc' for Exit");
                 ScreensManager.SetCurrentScreen(r_MainMenu);
             }
 
-            if (InputManager.KeyPressed(r_FacebookTrigger))
+            if (InputManager.KeyPressed(r_BackTrigger))
             {
-                r_FacebookManager.Login();
-                if (r_FacebookManager.UserName != null)
-                {
-                    r_LoginStatus.Content = $"Logged in as: {r_FacebookManager.UserName}";
-                    // Pass the name to PlayersManager if needed
-                    Invaders.Managers.PlayersManager.SetPlayerNames(new string[] { r_FacebookManager.UserName });
-                }
-            }
-
-            if (InputManager.KeyPressed(r_ExitTrigger))
-            {
-                Game.Exit();
+                ExitScreen();
+                BackToDashboard?.Invoke();
             }
         }
 
@@ -120,6 +98,12 @@ Press 'Esc' for Exit");
             {
                 DefineSettings.Invoke(r_MainMenu.NumberOfPlayers);
             }
+        }
+
+        private void onMainMenuBackToDashboard()
+        {
+            ExitScreen();
+            BackToDashboard?.Invoke();
         }
     }
 }

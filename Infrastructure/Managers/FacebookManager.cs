@@ -16,7 +16,7 @@ namespace Infrastructure.Managers
 
         public void Login()
         {
-            string loginUrl = $"https://www.facebook.com/v12.0/dialog/oauth?client_id={r_AppId}&redirect_uri=https://www.facebook.com/connect/login_success.html&response_type=token";
+            string loginUrl = $"https://www.facebook.com/v19.0/dialog/oauth?client_id={r_AppId}&redirect_uri=https://www.facebook.com/connect/login_success.html&response_type=token";
 
             try
             {

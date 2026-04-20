@@ -8,6 +8,7 @@ namespace Invaders.Screens
     public class MainMenuScreen : MenuScreen
     {
         public Action DefineSettings;
+        public event Action BackToDashboard;
 
         private const string k_Title = "Main Menu";
         private readonly MenuItem r_ScreenSetting;
@@ -71,7 +72,8 @@ namespace Invaders.Screens
 
         private void quit_Clicked()
         {
-            this.Game.Exit();
+            ExitScreen();
+            BackToDashboard?.Invoke();
         }
 
         private void onDefineSettings()

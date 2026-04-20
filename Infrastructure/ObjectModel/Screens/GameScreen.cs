@@ -1,4 +1,4 @@
-//*** Guy Ronen © 2008-2011 ***//
+//*** Guy Ronen ï¿½ 2008-2011 ***//
 using System;
 using Infrastructure.Managers;
 using Infrastructure.ServiceInterfaces;
@@ -90,6 +90,8 @@ namespace Infrastructure.ObjectModel.Screens
         {
             this.Enabled = this.Visible = this.HasFocus = false;
         }
+
+        public void Close() => ExitScreen();
 
         protected void ExitScreen()
         {
