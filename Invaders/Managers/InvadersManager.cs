@@ -5,6 +5,7 @@ using Infrastructure.Managers;
 using Infrastructure.ObjectModel.Screens;
 using Invaders.Screens;
 using Invaders.Tetris;
+using Invaders.IcyTower;
 
 namespace Invaders.Managers
 {
@@ -18,6 +19,7 @@ namespace Invaders.Managers
         private const string k_DashboardTitle            = "Game Dashboard";
         private const string k_SpaceInvadersTitle        = "Space Invaders";
         private const string k_TetrisTitle               = "Tetris";
+        private const string k_IcyTowerTitle             = "Icy Tower";
 
         private readonly Background r_SpaceBackground;
         private readonly Background r_DashboardBackground;
@@ -50,6 +52,10 @@ namespace Invaders.Managers
 
         protected override void Initialize()
         {
+            GraphicsDeviceManager.PreferredBackBufferWidth = BaseGame.k_DefaultWindowWidth;
+            GraphicsDeviceManager.PreferredBackBufferHeight = BaseGame.k_DefaultWindowHeight;
+            GraphicsDeviceManager.ApplyChanges();
+
             base.Initialize();
 
             createGameOverScreen();
@@ -58,6 +64,7 @@ namespace Invaders.Managers
             r_WelcomeScreen.BackToDashboard  += returnToDashboard;
             r_GamePickerScreen.SpaceInvadersSelected += launchSpaceInvaders;
             r_GamePickerScreen.TetrisSelected        += launchTetris;
+            r_GamePickerScreen.IcyTowerSelected      += launchIcyTower;
             r_GamePickerScreen.LeaderboardSelected   += launchLeaderboard;
 
             Window.Title = k_DashboardTitle;
@@ -92,6 +99,17 @@ namespace Invaders.Managers
             TetrisPlayScreen tetrisScreen = new TetrisPlayScreen(this);
             tetrisScreen.BackToDashboard += returnToDashboard;
             ScreensMananger.SetCurrentScreen(tetrisScreen);
+        }
+
+        private void launchIcyTower()
+        {
+            Window.Title = k_IcyTowerTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = false;
+
+            IcyTowerPlayScreen icyTowerScreen = new IcyTowerPlayScreen(this);
+            icyTowerScreen.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(icyTowerScreen);
         }
 
         private void launchLeaderboard()

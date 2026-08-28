@@ -48,7 +48,7 @@ namespace Invaders.Tetris
         private bool m_IsPaused;
         private bool m_IsClearingLines;
 
-        // In-game pause menu
+        // In-game menus
         private int m_PauseMenuIndex = 0;
         private static readonly string[] s_PauseMenuItems = new string[]
         {
@@ -56,6 +56,14 @@ namespace Invaders.Tetris
             "Mute / Unmute",
             "Leaderboard",
             "Restart Game",
+            "Quit to Dashboard"
+        };
+
+        private int m_GameOverMenuIndex = 0;
+        private static readonly string[] s_GameOverMenuItems = new string[]
+        {
+            "Play Again",
+            "Leaderboard",
             "Quit to Dashboard"
         };
 
@@ -375,21 +383,7 @@ namespace Invaders.Tetris
             // 1. GAME OVER STATE
             if (m_IsGameOver)
             {
-                if (isKeyPressed(Keys.L) || isButtonPressed(Buttons.Y) || isButtonPressed(Buttons.X))
-                {
-                    ScreensManager.SetCurrentScreen(new LeaderboardScreen(Game, 1));
-                    return;
-                }
-                if (isEscOrBack())
-                {
-                    onBackToDashboard();
-                    return;
-                }
-                if (isRestartPressed())
-                {
-                    restartGame();
-                    return;
-                }
+                updateGameOverMenu();
                 return;
             }
 
@@ -484,6 +478,65 @@ namespace Invaders.Tetris
                     restartGame();
                     break;
                 case 4: // Quit to Dashboard
+                    onBackToDashboard();
+                    break;
+            }
+        }
+
+        private void updateGameOverMenu()
+        {
+            // Direct shortcut: Leaderboard (L or Gamepad Y/X)
+            if (isKeyPressed(Keys.L) || isButtonPressed(Buttons.Y) || isButtonPressed(Buttons.X))
+            {
+                ScreensManager.SetCurrentScreen(new LeaderboardScreen(Game, 1)); // Tab 1 = Tetris
+                return;
+            }
+
+            // Direct shortcut: Quit to dashboard (Esc / Q / Gamepad B/Back)
+            if (isEscOrBack())
+            {
+                onBackToDashboard();
+                return;
+            }
+
+            // Direct shortcut: Quick Restart (R)
+            if (isKeyPressed(Keys.R))
+            {
+                restartGame();
+                return;
+            }
+
+            // Menu navigation: Up
+            if (isKeyPressed(Keys.Up) || isKeyPressed(Keys.W) || isButtonPressed(Buttons.DPadUp))
+            {
+                m_GameOverMenuIndex = (m_GameOverMenuIndex + s_GameOverMenuItems.Length - 1) % s_GameOverMenuItems.Length;
+                m_SoundMoveInstance?.Play();
+            }
+            // Menu navigation: Down
+            else if (isKeyPressed(Keys.Down) || isKeyPressed(Keys.S) || isButtonPressed(Buttons.DPadDown))
+            {
+                m_GameOverMenuIndex = (m_GameOverMenuIndex + 1) % s_GameOverMenuItems.Length;
+                m_SoundMoveInstance?.Play();
+            }
+
+            // Menu selection: Enter / Space / Gamepad A
+            if (isConfirmPressed())
+            {
+                executeGameOverMenuOption(m_GameOverMenuIndex);
+            }
+        }
+
+        private void executeGameOverMenuOption(int i_Index)
+        {
+            switch (i_Index)
+            {
+                case 0: // Play Again
+                    restartGame();
+                    break;
+                case 1: // Leaderboard
+                    ScreensManager.SetCurrentScreen(new LeaderboardScreen(Game, 1));
+                    break;
+                case 2: // Quit to Dashboard
                     onBackToDashboard();
                     break;
             }
@@ -1093,8 +1146,8 @@ namespace Invaders.Tetris
             // Dark modal cover
             SpriteBatch.Draw(m_PixelTexture, new Rectangle(i_BoardX, i_BoardY, i_Width, i_Height), new Color(5, 5, 10, 225));
 
-            int cardWidth = 240;
-            int cardHeight = 210;
+            int cardWidth = 260;
+            int cardHeight = 240;
             int cardX = i_BoardX + (i_Width - cardWidth) / 2;
             int cardY = i_BoardY + (i_Height - cardHeight) / 2;
 
@@ -1105,25 +1158,35 @@ namespace Invaders.Tetris
             // Title
             string title = "GAME OVER";
             Vector2 titleSize = m_Font.MeasureString(title) * 1.1f;
-            SpriteBatch.DrawString(m_Font, title, new Vector2(cardX + (cardWidth - titleSize.X) / 2, cardY + 18), Color.Crimson, 0f, Vector2.Zero, 1.1f, SpriteEffects.None, 0f);
+            SpriteBatch.DrawString(m_Font, title, new Vector2(cardX + (cardWidth - titleSize.X) / 2, cardY + 16), Color.Crimson, 0f, Vector2.Zero, 1.1f, SpriteEffects.None, 0f);
 
             // Final Score
-            string scoreStr = $"Score: {m_Score:N0}";
-            Vector2 scoreSize = m_Font.MeasureString(scoreStr) * 0.8f;
-            SpriteBatch.DrawString(m_Font, scoreStr, new Vector2(cardX + (cardWidth - scoreSize.X) / 2, cardY + 58), Color.Gold, 0f, Vector2.Zero, 0.8f, SpriteEffects.None, 0f);
+            string scoreStr = $"Score: {m_Score:N0}   Level: {m_Level}";
+            Vector2 scoreSize = m_Font.MeasureString(scoreStr) * 0.72f;
+            SpriteBatch.DrawString(m_Font, scoreStr, new Vector2(cardX + (cardWidth - scoreSize.X) / 2, cardY + 48), Color.Gold, 0f, Vector2.Zero, 0.72f, SpriteEffects.None, 0f);
 
-            // Prompt
-            string restartStr = "Press [Enter] to Play";
-            Vector2 restartSize = m_Font.MeasureString(restartStr) * 0.65f;
-            SpriteBatch.DrawString(m_Font, restartStr, new Vector2(cardX + (cardWidth - restartSize.X) / 2, cardY + 98), Color.White, 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
+            // Interactive Options
+            int startItemY = cardY + 76;
+            for (int i = 0; i < s_GameOverMenuItems.Length; i++)
+            {
+                bool isSelected = (i == m_GameOverMenuIndex);
+                Rectangle itemRect = new Rectangle(cardX + 15, startItemY + i * 34, cardWidth - 30, 28);
 
-            string lbStr = "Press [L] Leaderboard";
-            Vector2 lbSize = m_Font.MeasureString(lbStr) * 0.65f;
-            SpriteBatch.DrawString(m_Font, lbStr, new Vector2(cardX + (cardWidth - lbSize.X) / 2, cardY + 125), Color.Cyan, 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
+                if (isSelected)
+                {
+                    SpriteBatch.Draw(m_PixelTexture, itemRect, new Color(60, 75, 140, 240));
+                    drawRectOutline(itemRect, Color.Gold, 1);
+                }
 
-            string exitStr = "Press [Esc] for Menu";
-            Vector2 exitSize = m_Font.MeasureString(exitStr) * 0.65f;
-            SpriteBatch.DrawString(m_Font, exitStr, new Vector2(cardX + (cardWidth - exitSize.X) / 2, cardY + 152), new Color(180, 190, 210), 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
+                string label = isSelected ? $"> {s_GameOverMenuItems[i]}" : $"  {s_GameOverMenuItems[i]}";
+                Color textColor = isSelected ? Color.Gold : new Color(200, 210, 230);
+                SpriteBatch.DrawString(m_Font, label, new Vector2(itemRect.X + 8, itemRect.Y + 5), textColor, 0f, Vector2.Zero, 0.72f, SpriteEffects.None, 0f);
+            }
+
+            // Footer hint
+            string hint = "[Up/Down] Choose  |  [Enter] Select";
+            Vector2 hintSize = m_Font.MeasureString(hint) * 0.55f;
+            SpriteBatch.DrawString(m_Font, hint, new Vector2(cardX + (cardWidth - hintSize.X) / 2, cardY + cardHeight - 18), new Color(140, 155, 180), 0f, Vector2.Zero, 0.55f, SpriteEffects.None, 0f);
         }
 
         #endregion

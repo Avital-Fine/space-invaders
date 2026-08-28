@@ -12,6 +12,7 @@ namespace Invaders.Screens
     {
         public event Action SpaceInvadersSelected;
         public event Action TetrisSelected;
+        public event Action IcyTowerSelected;
         public event Action LeaderboardSelected;
 
         private const string k_Title    = "Game Dashboard";
@@ -23,6 +24,7 @@ namespace Invaders.Screens
         private static readonly Color s_TextDimmed       = new Color(160, 160, 180);
         private static readonly Color s_BtnSpaceInvaders = new Color(30, 140, 50);   // arcade green
         private static readonly Color s_BtnTetris        = new Color(145, 30, 180);  // arcade purple
+        private static readonly Color s_BtnIcyTower      = new Color(20, 150, 220);  // arcade cyan/ice blue
         private static readonly Color s_BtnLeaderboard   = new Color(200, 140, 20);  // arcade gold
         private static readonly Color s_BtnFacebook      = new Color(24, 119, 242);  // Facebook blue
         private static readonly Color s_BtnDimmed        = new Color(45, 45, 70);    // muted navy - coming soon
@@ -31,6 +33,7 @@ namespace Invaders.Screens
         private readonly FacebookManager r_FacebookManager;
         private readonly MenuItem r_SpaceInvaders;
         private readonly MenuItem r_Tetris;
+        private readonly MenuItem r_IcyTower;
         private readonly MenuItem r_Snake;
         private readonly MenuItem r_PacMan;
         private readonly MenuItem r_Leaderboard;
@@ -42,6 +45,7 @@ namespace Invaders.Screens
         {
             r_SpaceInvaders = new MenuItem(this, "Space Invaders");
             r_Tetris        = new MenuItem(this, "Tetris");
+            r_IcyTower      = new MenuItem(this, "Icy Tower");
             r_Snake         = new MenuItem(this, "Snake           [Coming Soon]");
             r_PacMan        = new MenuItem(this, "Pac-Man         [Coming Soon]");
             r_Leaderboard   = new MenuItem(this, "Hall of Fame (Leaderboard)");
@@ -80,11 +84,16 @@ namespace Invaders.Screens
             r_Tetris.TextColor       = s_TextActive;
             r_Tetris.Clicked        += tetris_Clicked;
 
+            // Icy Tower - arcade cyan/ice blue
+            r_IcyTower.ButtonTintColor = s_BtnIcyTower;
+            r_IcyTower.TextColor       = s_TextActive;
+            r_IcyTower.Clicked        += icyTower_Clicked;
+
             // Placeholder games - dimmed to signal unavailability
             styleComingSoon(r_Snake);
             styleComingSoon(r_PacMan);
 
-            // Leaderboard - arcade gold (positioned after all games and before Facebook login)
+            // Leaderboard - arcade gold
             r_Leaderboard.ButtonTintColor = s_BtnLeaderboard;
             r_Leaderboard.TextColor       = s_TextActive;
             r_Leaderboard.Clicked        += leaderboard_Clicked;
@@ -121,6 +130,11 @@ namespace Invaders.Screens
         private void tetris_Clicked()
         {
             TetrisSelected?.Invoke();
+        }
+
+        private void icyTower_Clicked()
+        {
+            IcyTowerSelected?.Invoke();
         }
 
         private void leaderboard_Clicked()

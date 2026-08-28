@@ -17,8 +17,8 @@ namespace Invaders.Screens
         private SpriteFont m_Font;
         private Texture2D m_PixelTexture;
 
-        private int m_CurrentTab = 0; // 0 = All, 1 = Tetris, 2 = Space Invaders
-        private readonly string[] r_Tabs = new string[] { "ALL GAMES", "TETRIS", "SPACE INVADERS" };
+        private int m_CurrentTab = 0; // 0 = All, 1 = Tetris, 2 = Icy Tower, 3 = Space Invaders
+        private readonly string[] r_Tabs = new string[] { "ALL GAMES", "TETRIS", "ICY TOWER", "SPACE INVADERS" };
 
         private KeyboardState m_CurrKeyboard;
         private KeyboardState m_PrevKeyboard;
@@ -99,8 +99,8 @@ namespace Invaders.Screens
             // Background dark overlay
             SpriteBatch.Draw(m_PixelTexture, new Rectangle(0, 0, vp.Width, vp.Height), new Color(8, 10, 18, 245));
 
-            int cardWidth = Math.Min(720, vp.Width - 40);
-            int cardHeight = Math.Min(520, vp.Height - 40);
+            int cardWidth = Math.Min(740, vp.Width - 40);
+            int cardHeight = Math.Min(540, vp.Height - 40);
             int cardX = (vp.Width - cardWidth) / 2;
             int cardY = (vp.Height - cardHeight) / 2;
 
@@ -129,14 +129,15 @@ namespace Invaders.Screens
 
         private void drawTabs(int i_CardX, int i_Y, int i_CardWidth)
         {
-            int tabWidth = 180;
-            int totalTabsWidth = r_Tabs.Length * tabWidth + (r_Tabs.Length - 1) * 15;
+            int tabWidth = 150;
+            int spacing = 10;
+            int totalTabsWidth = r_Tabs.Length * tabWidth + (r_Tabs.Length - 1) * spacing;
             int startX = i_CardX + (i_CardWidth - totalTabsWidth) / 2;
 
             for (int i = 0; i < r_Tabs.Length; i++)
             {
                 bool isSelected = (i == m_CurrentTab);
-                Rectangle tabRect = new Rectangle(startX + i * (tabWidth + 15), i_Y, tabWidth, 32);
+                Rectangle tabRect = new Rectangle(startX + i * (tabWidth + spacing), i_Y, tabWidth, 32);
 
                 Color tabBg = isSelected ? new Color(40, 70, 140, 240) : new Color(25, 30, 50, 200);
                 Color tabBorder = isSelected ? Color.Gold : new Color(50, 60, 90, 180);
@@ -145,9 +146,9 @@ namespace Invaders.Screens
                 SpriteBatch.Draw(m_PixelTexture, tabRect, tabBg);
                 drawRectOutline(tabRect, tabBorder, isSelected ? 2 : 1);
 
-                Vector2 textSize = m_Font.MeasureString(r_Tabs[i]) * 0.68f;
+                Vector2 textSize = m_Font.MeasureString(r_Tabs[i]) * 0.62f;
                 Vector2 textPos = new Vector2(tabRect.X + (tabRect.Width - textSize.X) / 2, tabRect.Y + (tabRect.Height - textSize.Y) / 2);
-                SpriteBatch.DrawString(m_Font, r_Tabs[i], textPos, textColor, 0f, Vector2.Zero, 0.68f, SpriteEffects.None, 0f);
+                SpriteBatch.DrawString(m_Font, r_Tabs[i], textPos, textColor, 0f, Vector2.Zero, 0.62f, SpriteEffects.None, 0f);
             }
         }
 
@@ -171,11 +172,17 @@ namespace Invaders.Screens
             SpriteBatch.DrawString(m_Font, "PLAYER", new Vector2(colName, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
             SpriteBatch.DrawString(m_Font, "GAME", new Vector2(colGame, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
             SpriteBatch.DrawString(m_Font, "SCORE", new Vector2(colScore, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
-            SpriteBatch.DrawString(m_Font, "LVL", new Vector2(colLevel, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
+            SpriteBatch.DrawString(m_Font, "LVL/FLR", new Vector2(colLevel - 10, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
             SpriteBatch.DrawString(m_Font, "DATE", new Vector2(colDate, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
 
             // Query scores based on active tab
-            string gameFilter = m_CurrentTab == 1 ? "Tetris" : (m_CurrentTab == 2 ? "Space Invaders" : null);
+            string gameFilter = m_CurrentTab switch
+            {
+                1 => "Tetris",
+                2 => "Icy Tower",
+                3 => "Space Invaders",
+                _ => null
+            };
             List<ScoreEntry> scores = r_ScoresDatabase.GetTopScores(k_TopScoresCount, gameFilter);
 
             int rowY = i_Y + 34;

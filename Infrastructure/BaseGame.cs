@@ -20,9 +20,18 @@ namespace Infrastructure
         public SoundsManager SoundsManager { get { return m_SoundManager; } }
         public GraphicsDeviceManager GraphicsDeviceManager { get { return m_Graphics; } }
 
+        public const int k_DefaultWindowWidth = 1024;
+        public const int k_DefaultWindowHeight = 768;
+
         public BaseGame()
         {
-            m_Graphics = new GraphicsDeviceManager(this);
+            m_Graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferWidth = k_DefaultWindowWidth,
+                PreferredBackBufferHeight = k_DefaultWindowHeight
+            };
+            m_Graphics.ApplyChanges();
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
@@ -31,6 +40,18 @@ namespace Infrastructure
             m_CollisionsManager = new CollisionsManager(this);
             m_InputManager = new InputManager(this);
             m_SoundManager = new SoundsManager(this);
+        }
+
+        protected override void Initialize()
+        {
+            if (m_Graphics.PreferredBackBufferWidth != k_DefaultWindowWidth || m_Graphics.PreferredBackBufferHeight != k_DefaultWindowHeight)
+            {
+                m_Graphics.PreferredBackBufferWidth = k_DefaultWindowWidth;
+                m_Graphics.PreferredBackBufferHeight = k_DefaultWindowHeight;
+                m_Graphics.ApplyChanges();
+            }
+
+            base.Initialize();
         }
 
         protected override void LoadContent()
