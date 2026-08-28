@@ -11,6 +11,8 @@ namespace Invaders.Screens
     public class GamePickerScreen : MenuScreen
     {
         public event Action SpaceInvadersSelected;
+        public event Action TetrisSelected;
+        public event Action LeaderboardSelected;
 
         private const string k_Title    = "Game Dashboard";
         private const string k_FontType = "Consolas";
@@ -20,8 +22,10 @@ namespace Invaders.Screens
         private static readonly Color s_TextActive       = Color.White;
         private static readonly Color s_TextDimmed       = new Color(160, 160, 180);
         private static readonly Color s_BtnSpaceInvaders = new Color(30, 140, 50);   // arcade green
+        private static readonly Color s_BtnTetris        = new Color(145, 30, 180);  // arcade purple
+        private static readonly Color s_BtnLeaderboard   = new Color(200, 140, 20);  // arcade gold
         private static readonly Color s_BtnFacebook      = new Color(24, 119, 242);  // Facebook blue
-        private static readonly Color s_BtnDimmed        = new Color(45, 45, 70);    // muted navy — coming soon
+        private static readonly Color s_BtnDimmed        = new Color(45, 45, 70);    // muted navy - coming soon
         private static readonly Color s_BtnQuit          = new Color(140, 35, 35);   // dark red
 
         private readonly FacebookManager r_FacebookManager;
@@ -29,6 +33,7 @@ namespace Invaders.Screens
         private readonly MenuItem r_Tetris;
         private readonly MenuItem r_Snake;
         private readonly MenuItem r_PacMan;
+        private readonly MenuItem r_Leaderboard;
         private readonly MenuItem r_FacebookLogin;
         private readonly MenuItem r_Quit;
         private readonly Text r_LoginStatus;
@@ -36,9 +41,10 @@ namespace Invaders.Screens
         public GamePickerScreen(Game i_Game) : base(i_Game, k_Title)
         {
             r_SpaceInvaders = new MenuItem(this, "Space Invaders");
-            r_Tetris        = new MenuItem(this, "Tetris          [Coming Soon]");
+            r_Tetris        = new MenuItem(this, "Tetris");
             r_Snake         = new MenuItem(this, "Snake           [Coming Soon]");
             r_PacMan        = new MenuItem(this, "Pac-Man         [Coming Soon]");
+            r_Leaderboard   = new MenuItem(this, "Hall of Fame (Leaderboard)");
             r_FacebookLogin = new MenuItem(this, "Sign in with Facebook");
             r_Quit          = new MenuItem(this, "Quit");
             r_LoginStatus   = new Text(this, k_FontType, string.Empty);
@@ -64,27 +70,36 @@ namespace Invaders.Screens
             // Style the title
             r_Title.TintColor = s_TitleColor;
 
-            // Space Invaders — available, vibrant green
+            // Space Invaders - arcade green
             r_SpaceInvaders.ButtonTintColor = s_BtnSpaceInvaders;
             r_SpaceInvaders.TextColor       = s_TextActive;
             r_SpaceInvaders.Clicked        += spaceInvaders_Clicked;
 
-            // Placeholder games — dimmed to signal unavailability
-            styleComingSoon(r_Tetris);
+            // Tetris - arcade purple
+            r_Tetris.ButtonTintColor = s_BtnTetris;
+            r_Tetris.TextColor       = s_TextActive;
+            r_Tetris.Clicked        += tetris_Clicked;
+
+            // Placeholder games - dimmed to signal unavailability
             styleComingSoon(r_Snake);
             styleComingSoon(r_PacMan);
 
-            // Facebook login — blue
+            // Leaderboard - arcade gold (positioned after all games and before Facebook login)
+            r_Leaderboard.ButtonTintColor = s_BtnLeaderboard;
+            r_Leaderboard.TextColor       = s_TextActive;
+            r_Leaderboard.Clicked        += leaderboard_Clicked;
+
+            // Facebook login - blue
             r_FacebookLogin.ButtonTintColor = s_BtnFacebook;
             r_FacebookLogin.TextColor       = s_TextActive;
             r_FacebookLogin.Clicked        += facebookLogin_Clicked;
 
-            // Quit — dark red
+            // Quit - dark red
             r_Quit.ButtonTintColor = s_BtnQuit;
             r_Quit.TextColor       = s_TextActive;
             r_Quit.Clicked        += () => Game.Exit();
 
-            // Login status — shown below the title
+            // Login status - shown below the title
             r_LoginStatus.TintColor = new Color(180, 210, 255);
             r_LoginStatus.Position  = new Vector2(
                 r_Title.Position.X,
@@ -101,6 +116,16 @@ namespace Invaders.Screens
         private void spaceInvaders_Clicked()
         {
             SpaceInvadersSelected?.Invoke();
+        }
+
+        private void tetris_Clicked()
+        {
+            TetrisSelected?.Invoke();
+        }
+
+        private void leaderboard_Clicked()
+        {
+            LeaderboardSelected?.Invoke();
         }
 
         private void comingSoon_Clicked()

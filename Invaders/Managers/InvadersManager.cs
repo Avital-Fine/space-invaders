@@ -4,6 +4,7 @@ using Infrastructure;
 using Infrastructure.Managers;
 using Infrastructure.ObjectModel.Screens;
 using Invaders.Screens;
+using Invaders.Tetris;
 
 namespace Invaders.Managers
 {
@@ -16,6 +17,7 @@ namespace Invaders.Managers
         private const string k_MenuTransitionSoundAssert = @"Sounds\MenuMove";
         private const string k_DashboardTitle            = "Game Dashboard";
         private const string k_SpaceInvadersTitle        = "Space Invaders";
+        private const string k_TetrisTitle               = "Tetris";
 
         private readonly Background r_SpaceBackground;
         private readonly Background r_DashboardBackground;
@@ -55,6 +57,8 @@ namespace Invaders.Managers
             r_WelcomeScreen.DefineSettings   += mainMenu_DefineSettings;
             r_WelcomeScreen.BackToDashboard  += returnToDashboard;
             r_GamePickerScreen.SpaceInvadersSelected += launchSpaceInvaders;
+            r_GamePickerScreen.TetrisSelected        += launchTetris;
+            r_GamePickerScreen.LeaderboardSelected   += launchLeaderboard;
 
             Window.Title = k_DashboardTitle;
             ScreensMananger.SetCurrentScreen(r_GamePickerScreen);
@@ -77,6 +81,22 @@ namespace Invaders.Managers
 
             ScreensMananger.Push(m_GameOverScreen);
             ScreensMananger.SetCurrentScreen(r_WelcomeScreen);
+        }
+
+        private void launchTetris()
+        {
+            Window.Title = k_TetrisTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = false;
+
+            TetrisPlayScreen tetrisScreen = new TetrisPlayScreen(this);
+            tetrisScreen.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(tetrisScreen);
+        }
+
+        private void launchLeaderboard()
+        {
+            ScreensMananger.SetCurrentScreen(new LeaderboardScreen(this));
         }
 
         private void returnToDashboard()
@@ -168,7 +188,7 @@ namespace Invaders.Managers
                 m_GameOverScreen.SetScoreInfo(PlayersManager.Scores);
                 for (int i = 0; i < PlayersManager.Scores.Length; i++)
                 {
-                    r_ScoresDatabase.SaveScore(PlayersManager.PlayerNames[i], PlayersManager.Scores[i], m_CurrentLevel);
+                    r_ScoresDatabase.SaveScore(PlayersManager.PlayerNames[i], PlayersManager.Scores[i], m_CurrentLevel, "Space Invaders");
                 }
             }
         }

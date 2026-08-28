@@ -28,6 +28,7 @@ namespace Invaders.Screens
             r_GameOverMessage = new Headline(this, k_FontType, "Game Over");
             r_ScoresMessage = new Text(this, k_FontType);
             r_InfoMessage = new Text(this, k_FontType, @"Press 'Enter' to Start
+Press 'L' for Leaderboard
 Press 'M' for Main Menu
 Press 'Esc' to return to Dashboard");
             r_MainMenu = new MainMenuScreen(i_Game);
@@ -99,6 +100,10 @@ Press 'Esc' to return to Dashboard");
             {
                 ExitScreen();
                 BackToDashboard?.Invoke();
+            }
+            else if (InputManager.KeyPressed(Keys.L))
+            {
+                ScreensManager.SetCurrentScreen(new LeaderboardScreen(Game, 2)); // Tab 2 = Space Invaders
             }
             else if (InputManager.KeyPressed(r_MainMenuTrigger))
             {
