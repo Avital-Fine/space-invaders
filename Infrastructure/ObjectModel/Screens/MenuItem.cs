@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Infrastructure.ServiceInterfaces;
@@ -23,6 +23,7 @@ namespace Infrastructure.ObjectModel.Screens
         private readonly Text r_Text;
         private bool m_HasFocus;
         private int m_ListIndex;
+        private MouseState m_PrevMouseState;
 
         protected string Content 
         { 
@@ -76,9 +77,10 @@ namespace Infrastructure.ObjectModel.Screens
 
             initButtonAnimations();
             centralize();
-            deactivate() ;
+            deactivate();
             r_Text.TintColor = Color.Black;
             r_MenuScreen.AddOption(this);
+            m_PrevMouseState = Mouse.GetState();
         }
 
         private void centralize()
@@ -97,15 +99,25 @@ namespace Infrastructure.ObjectModel.Screens
         {
             base.Update(gameTime);
 
-            if(r_MenuScreen.InputManager.MousePositionDelta != Vector2.Zero)
+            MouseState currMouse = Mouse.GetState();
+            bool isHovered = r_Button.Bounds.Contains(currMouse.Position);
+
+            if (isHovered)
             {
-                HasFocus = r_MenuScreen.InputManager.MouseHover(r_Button.Bounds);
+                HasFocus = true;
+
+                if (currMouse.LeftButton == ButtonState.Pressed && m_PrevMouseState.LeftButton == ButtonState.Released)
+                {
+                    TriggerClick();
+                }
             }
 
-            if (HasFocus) 
-            {
-                DoWhenActive();
-            }
+            m_PrevMouseState = currMouse;
+        }
+
+        public void TriggerClick()
+        {
+            OnClicked();
         }
 
         protected virtual void DoWhenActive()
@@ -118,7 +130,11 @@ namespace Infrastructure.ObjectModel.Screens
 
         protected virtual bool TriggersActivated()
         {
-            return r_MenuScreen.InputManager.ButtonPressed(r_SelectTrigger2) || r_MenuScreen.InputManager.KeyPressed(r_SelectTrigger1);
+            bool viaManager = r_MenuScreen.InputManager.ButtonPressed(r_SelectTrigger2) || r_MenuScreen.InputManager.KeyPressed(r_SelectTrigger1);
+            bool directEnter = r_MenuScreen.InputManager.KeyPressed(Keys.Space);
+            bool padA = GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) || GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.Start);
+
+            return viaManager || directEnter || padA;
         }
 
         private void deactivate()
@@ -136,18 +152,12 @@ namespace Infrastructure.ObjectModel.Screens
 
         protected void OnClicked()
         {
-            if (Clicked != null)
-            {
-                Clicked.Invoke();
-            }
+            Clicked?.Invoke();
         }
 
         private void onFocusChange()
         {
-            if (FocusChange != null)
-            {
-                FocusChange.Invoke(this, EventArgs.Empty);
-            }
+            FocusChange?.Invoke(this, EventArgs.Empty);
 
             if (m_HasFocus)
             {

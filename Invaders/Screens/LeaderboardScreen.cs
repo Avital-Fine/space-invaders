@@ -17,8 +17,8 @@ namespace Invaders.Screens
         private SpriteFont m_Font;
         private Texture2D m_PixelTexture;
 
-        private int m_CurrentTab = 0; // 0 = All, 1 = Tetris, 2 = Icy Tower, 3 = Snake, 4 = Space Invaders
-        private readonly string[] r_Tabs = new string[] { "ALL GAMES", "TETRIS", "ICY TOWER", "SNAKE", "SPACE INVADERS" };
+        private int m_CurrentTab = 0; // 0 = All, 1 = Tetris, 2 = Icy Tower, 3 = Snake, 4 = Pac-Man, 5 = Space Invaders
+        private readonly string[] r_Tabs = new string[] { "ALL GAMES", "TETRIS", "ICY TOWER", "SNAKE", "PAC-MAN", "SPACE INVADERS" };
 
         private KeyboardState m_CurrKeyboard;
         private KeyboardState m_PrevKeyboard;
@@ -183,7 +183,8 @@ namespace Invaders.Screens
                 1 => "Tetris",
                 2 => "Icy Tower",
                 3 => "Snake",
-                4 => "Space Invaders",
+                4 => "Pac-Man",
+                5 => "Space Invaders",
                 _ => null
             };
             List<ScoreEntry> scores = r_ScoresDatabase.GetTopScores(k_TopScoresCount, gameFilter);

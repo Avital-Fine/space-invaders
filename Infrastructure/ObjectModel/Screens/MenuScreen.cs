@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -11,19 +11,21 @@ namespace Infrastructure.ObjectModel.Screens
     {
         private const string k_Font = "Consolas";
         protected readonly List<MenuItem> r_Options;
-        private readonly Keys r_NextTrigger = Keys.Up;
-        private readonly Keys r_PrevTrigger = Keys.Down;
-        private readonly Keys r_BackTrigger = Keys.Escape;
         protected readonly Headline r_Title;
         private int m_ActiveItemIndex = 0;
         private static SoundEffectInstance s_TransitionSoundEffect;
+
+        private KeyboardState m_CurrKeyboard;
+        private KeyboardState m_PrevKeyboard;
+        private GamePadState m_CurrGamePad;
+        private GamePadState m_PrevGamePad;
 
         public static SoundEffectInstance TransitionSoundEffect { set { s_TransitionSoundEffect = value; } }
 
         public MenuScreen(Game i_Game, string i_Title) : base(i_Game)
         {
             r_Options = new List<MenuItem>();
-            r_Title = new Headline(this,k_Font, i_Title);
+            r_Title = new Headline(this, k_Font, i_Title);
         }
 
         public override void Initialize()
@@ -31,6 +33,9 @@ namespace Infrastructure.ObjectModel.Screens
             base.Initialize();
             
             this.BlendState = BlendState.NonPremultiplied;
+            m_CurrKeyboard = m_PrevKeyboard = Keyboard.GetState();
+            m_CurrGamePad = m_PrevGamePad = GamePad.GetState(PlayerIndex.One);
+
             Game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
@@ -43,7 +48,7 @@ namespace Infrastructure.ObjectModel.Screens
                 i_Option.FocusChange += Option_FocusChange;
                 setItemPosition(i_Option);
 
-                if (i_Option.ListIndex == 1)
+                if (i_Option.ListIndex == 0)
                 {
                     i_Option.HasFocus = true;
                 }
@@ -53,7 +58,7 @@ namespace Infrastructure.ObjectModel.Screens
         private void setItemPosition(MenuItem i_MenuItem)
         {
             float newYPosition = r_Title.TopLeftPosition.Y + r_Title.Height + (i_MenuItem.ListIndex) * i_MenuItem.Height * 1.2f + 20;
-            float newXPosition =  this.CenterOfViewPort.X;
+            float newXPosition = this.CenterOfViewPort.X;
             i_MenuItem.Position = new Vector2(newXPosition, newYPosition);
         }
 
@@ -61,36 +66,69 @@ namespace Infrastructure.ObjectModel.Screens
         {
             base.Update(i_GameTime);
 
-            if (InputManager.KeyPressed(r_PrevTrigger))
+            m_PrevKeyboard = m_CurrKeyboard;
+            m_CurrKeyboard = Keyboard.GetState();
+
+            m_PrevGamePad = m_CurrGamePad;
+            m_CurrGamePad = GamePad.GetState(PlayerIndex.One);
+
+            bool downPressed = isKeyPressed(Keys.Down) || isKeyPressed(Keys.S) || isButtonPressed(Buttons.DPadDown);
+            bool upPressed = isKeyPressed(Keys.Up) || isKeyPressed(Keys.W) || isButtonPressed(Buttons.DPadUp);
+            bool selectPressed = isKeyPressed(Keys.Enter) || isKeyPressed(Keys.Space) || isButtonPressed(Buttons.A) || isButtonPressed(Buttons.Start);
+            bool backPressed = isKeyPressed(Keys.Escape) || isButtonPressed(Buttons.Back) || isButtonPressed(Buttons.B);
+
+            if (downPressed)
             {
                 updateActiveOption(m_ActiveItemIndex + 1);
             }
-            else if (InputManager.KeyPressed(r_NextTrigger))
+            else if (upPressed)
             {
                 updateActiveOption(m_ActiveItemIndex - 1);
             }
-            else if (InputManager.KeyPressed(r_BackTrigger))
+            else if (selectPressed)
+            {
+                if (m_ActiveItemIndex >= 0 && m_ActiveItemIndex < r_Options.Count)
+                {
+                    r_Options[m_ActiveItemIndex].TriggerClick();
+                }
+            }
+            else if (backPressed)
             {
                 ExitScreen();
             }
         }
 
+        private bool isKeyPressed(Keys i_Key)
+        {
+            bool direct = m_CurrKeyboard.IsKeyDown(i_Key) && m_PrevKeyboard.IsKeyUp(i_Key);
+            bool viaManager = InputManager != null && InputManager.KeyPressed(i_Key);
+            return direct || viaManager;
+        }
+
+        private bool isButtonPressed(Buttons i_Button)
+        {
+            return m_CurrGamePad.IsButtonDown(i_Button) && m_PrevGamePad.IsButtonUp(i_Button);
+        }
+
         private void updateActiveOption(int i_newActiveOption)
         {
-            r_Options[i_newActiveOption.Mod(r_Options.Count)].HasFocus = true;
+            if (r_Options.Count == 0) return;
+            int nextIndex = (i_newActiveOption % r_Options.Count + r_Options.Count) % r_Options.Count;
+            r_Options[nextIndex].HasFocus = true;
         }
 
         private void Option_FocusChange(object sender, EventArgs e)
         {
-            if ((sender as MenuItem).ListIndex != m_ActiveItemIndex)
+            MenuItem item = sender as MenuItem;
+            if (item != null && item.ListIndex != m_ActiveItemIndex)
             {
-                if (s_TransitionSoundEffect != null)
-                {
-                    s_TransitionSoundEffect.Play();
-                }
+                s_TransitionSoundEffect?.Play();
 
-                r_Options[m_ActiveItemIndex].HasFocus = false;
-                m_ActiveItemIndex = (sender as MenuItem).ListIndex;
+                if (m_ActiveItemIndex >= 0 && m_ActiveItemIndex < r_Options.Count)
+                {
+                    r_Options[m_ActiveItemIndex].HasFocus = false;
+                }
+                m_ActiveItemIndex = item.ListIndex;
             }
         }
 

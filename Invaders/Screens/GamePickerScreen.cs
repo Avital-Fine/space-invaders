@@ -14,6 +14,7 @@ namespace Invaders.Screens
         public event Action TetrisSelected;
         public event Action IcyTowerSelected;
         public event Action SnakeSelected;
+        public event Action PacManSelected;
         public event Action LeaderboardSelected;
 
         private const string k_Title    = "Game Dashboard";
@@ -27,9 +28,9 @@ namespace Invaders.Screens
         private static readonly Color s_BtnTetris        = new Color(145, 30, 180);  // arcade purple
         private static readonly Color s_BtnIcyTower      = new Color(20, 150, 220);  // arcade cyan/ice blue
         private static readonly Color s_BtnSnake         = new Color(30, 175, 80);   // arcade lime/emerald green
+        private static readonly Color s_BtnPacMan        = new Color(235, 195, 20);  // arcade Pac-Man yellow
         private static readonly Color s_BtnLeaderboard   = new Color(200, 140, 20);  // arcade gold
         private static readonly Color s_BtnFacebook      = new Color(24, 119, 242);  // Facebook blue
-        private static readonly Color s_BtnDimmed        = new Color(45, 45, 70);    // muted navy - coming soon
         private static readonly Color s_BtnQuit          = new Color(140, 35, 35);   // dark red
 
         private readonly FacebookManager r_FacebookManager;
@@ -49,7 +50,7 @@ namespace Invaders.Screens
             r_Tetris        = new MenuItem(this, "Tetris");
             r_IcyTower      = new MenuItem(this, "Icy Tower");
             r_Snake         = new MenuItem(this, "Snake");
-            r_PacMan        = new MenuItem(this, "Pac-Man         [Coming Soon]");
+            r_PacMan        = new MenuItem(this, "Pac-Man");
             r_Leaderboard   = new MenuItem(this, "Hall of Fame (Leaderboard)");
             r_FacebookLogin = new MenuItem(this, "Sign in with Facebook");
             r_Quit          = new MenuItem(this, "Quit");
@@ -96,8 +97,10 @@ namespace Invaders.Screens
             r_Snake.TextColor       = s_TextActive;
             r_Snake.Clicked        += snake_Clicked;
 
-            // Placeholder games - dimmed to signal unavailability
-            styleComingSoon(r_PacMan);
+            // Pac-Man - arcade yellow
+            r_PacMan.ButtonTintColor = s_BtnPacMan;
+            r_PacMan.TextColor       = Color.Black; // Dark text on bright yellow button
+            r_PacMan.Clicked        += pacMan_Clicked;
 
             // Leaderboard - arcade gold
             r_Leaderboard.ButtonTintColor = s_BtnLeaderboard;
@@ -121,13 +124,6 @@ namespace Invaders.Screens
                 r_Title.Position.Y + r_Title.Height + 6);
         }
 
-        private void styleComingSoon(MenuItem i_Item)
-        {
-            i_Item.ButtonTintColor = s_BtnDimmed;
-            i_Item.TextColor       = s_TextDimmed;
-            i_Item.Clicked        += comingSoon_Clicked;
-        }
-
         private void spaceInvaders_Clicked()
         {
             SpaceInvadersSelected?.Invoke();
@@ -148,14 +144,14 @@ namespace Invaders.Screens
             SnakeSelected?.Invoke();
         }
 
+        private void pacMan_Clicked()
+        {
+            PacManSelected?.Invoke();
+        }
+
         private void leaderboard_Clicked()
         {
             LeaderboardSelected?.Invoke();
-        }
-
-        private void comingSoon_Clicked()
-        {
-            ScreensManager.SetCurrentScreen(new ComingSoonScreen(Game));
         }
 
         private void facebookLogin_Clicked()

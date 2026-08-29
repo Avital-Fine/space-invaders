@@ -8,6 +8,7 @@ using Invaders.Screens;
 using Invaders.Tetris;
 using Invaders.IcyTower;
 using Invaders.Snake;
+using Invaders.PacMan;
 
 namespace Invaders.Managers
 {
@@ -23,6 +24,7 @@ namespace Invaders.Managers
         private const string k_TetrisTitle               = "Tetris";
         private const string k_IcyTowerTitle             = "Icy Tower";
         private const string k_SnakeTitle                = "Snake";
+        private const string k_PacManTitle               = "Pac-Man";
 
         private readonly Background r_SpaceBackground;
         private readonly Background r_DashboardBackground;
@@ -69,6 +71,7 @@ namespace Invaders.Managers
             r_GamePickerScreen.TetrisSelected        += launchTetris;
             r_GamePickerScreen.IcyTowerSelected      += launchIcyTower;
             r_GamePickerScreen.SnakeSelected         += launchSnake;
+            r_GamePickerScreen.PacManSelected        += launchPacMan;
             r_GamePickerScreen.LeaderboardSelected   += launchLeaderboard;
 
             Window.Title = k_DashboardTitle;
@@ -96,68 +99,61 @@ namespace Invaders.Managers
 
         private void launchTetris()
         {
-            ensurePlayerNameThen(() =>
-            {
-                Window.Title = k_TetrisTitle;
-                r_DashboardBackground.Visible = false;
-                r_SpaceBackground.Visible     = false;
+            Window.Title = k_TetrisTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = false;
 
-                TetrisPlayScreen tetrisScreen = new TetrisPlayScreen(this);
-                tetrisScreen.BackToDashboard += returnToDashboard;
-                ScreensMananger.SetCurrentScreen(tetrisScreen);
-            });
+            TetrisPlayScreen tetrisScreen = new TetrisPlayScreen(this);
+            tetrisScreen.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(tetrisScreen);
         }
 
         private void launchIcyTower()
         {
-            ensurePlayerNameThen(() =>
-            {
-                Window.Title = k_IcyTowerTitle;
-                r_DashboardBackground.Visible = false;
-                r_SpaceBackground.Visible     = false;
+            Window.Title = k_IcyTowerTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = false;
 
-                IcyTowerPlayScreen icyTowerScreen = new IcyTowerPlayScreen(this);
-                icyTowerScreen.BackToDashboard += returnToDashboard;
-                ScreensMananger.SetCurrentScreen(icyTowerScreen);
-            });
+            IcyTowerPlayScreen icyTowerScreen = new IcyTowerPlayScreen(this);
+            icyTowerScreen.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(icyTowerScreen);
         }
 
         private void launchSnake()
         {
-            ensurePlayerNameThen(() =>
-            {
-                Window.Title = k_SnakeTitle;
-                r_DashboardBackground.Visible = false;
-                r_SpaceBackground.Visible     = false;
+            Window.Title = k_SnakeTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = false;
 
-                SnakePlayScreen snakeScreen = new SnakePlayScreen(this);
-                snakeScreen.BackToDashboard += returnToDashboard;
-                ScreensMananger.SetCurrentScreen(snakeScreen);
-            });
+            SnakePlayScreen snakeScreen = new SnakePlayScreen(this);
+            snakeScreen.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(snakeScreen);
         }
 
-        private void ensurePlayerNameThen(Action i_OnReady)
+        private void launchPacMan()
         {
-            if (PlayersManager.PlayerNames != null &&
-                PlayersManager.PlayerNames.Length > 0 &&
-                !string.IsNullOrWhiteSpace(PlayersManager.PlayerNames[0]))
+            Window.Title = k_PacManTitle;
+            r_DashboardBackground.Visible = false;
+            r_SpaceBackground.Visible     = false;
+
+            PacManPlayScreen pacManScreen = new PacManPlayScreen(this);
+            pacManScreen.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(pacManScreen);
+        }
+
+        public void PromptPlayerName()
+        {
+            NameEntryScreen nameEntry = new NameEntryScreen(this, eNumberOfPlayers.OnePlayer);
+            nameEntry.NamesEntered += (names) =>
             {
-                i_OnReady();
-            }
-            else
+                PlayersManager.SetPlayerNames(names);
+                returnToDashboard();
+            };
+            nameEntry.Cancelled += () =>
             {
-                NameEntryScreen nameEntry = new NameEntryScreen(this, eNumberOfPlayers.OnePlayer);
-                nameEntry.NamesEntered += (names) =>
-                {
-                    PlayersManager.SetPlayerNames(names);
-                    i_OnReady();
-                };
-                nameEntry.Cancelled += () =>
-                {
-                    returnToDashboard();
-                };
-                ScreensMananger.SetCurrentScreen(nameEntry);
-            }
+                returnToDashboard();
+            };
+            ScreensMananger.SetCurrentScreen(nameEntry);
         }
 
         private void launchLeaderboard()
@@ -181,6 +177,8 @@ namespace Invaders.Managers
 
             // Fresh GameOverScreen for the next Space Invaders session
             createGameOverScreen();
+
+            ScreensMananger.SetCurrentScreen(r_GamePickerScreen);
         }
 
         protected override void LoadContent()
