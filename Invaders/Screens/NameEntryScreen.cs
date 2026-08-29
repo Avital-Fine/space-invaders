@@ -10,10 +10,11 @@ namespace Invaders.Screens
     public class NameEntryScreen : GameScreen
     {
         public event Action<string[]> NamesEntered;
+        public event Action Cancelled;
 
         private const string k_FontType = "Consolas";
         private const int k_MaxNameLength = 12;
-        private const float k_CursorBlinkInterval = 0.5f;
+        private const float k_CursorBlinkInterval = 0.45f;
 
         private readonly eNumberOfPlayers r_NumberOfPlayers;
         private readonly Text r_PromptMessage;
@@ -25,6 +26,9 @@ namespace Invaders.Screens
         private string m_CurrentInput;
         private float m_CursorBlinkTimer;
         private bool m_ShowCursor;
+
+        private KeyboardState m_CurrKeyboard;
+        private KeyboardState m_PrevKeyboard;
 
         public NameEntryScreen(Game i_Game, eNumberOfPlayers i_NumberOfPlayers)
             : base(i_Game)
@@ -39,7 +43,7 @@ namespace Invaders.Screens
             r_TypedNameDisplay = new Text(this, k_FontType);
             r_InfoMessage = new Text(this, k_FontType, @"Type your name and press Enter
 Press Enter to skip (default name)
-Backspace to delete");
+[Esc] to Cancel  |  [Backspace] to delete");
         }
 
         public override void Initialize()
@@ -47,6 +51,8 @@ Backspace to delete");
             base.Initialize();
 
             this.BlendState = BlendState.NonPremultiplied;
+            m_CurrKeyboard = m_PrevKeyboard = Keyboard.GetState();
+
             updatePrompt();
             updateTypedDisplay();
             positionTexts();
@@ -54,14 +60,14 @@ Backspace to delete");
 
         private void positionTexts()
         {
-            r_PromptMessage.TintColor = Color.CadetBlue;
+            r_PromptMessage.TintColor = Color.Cyan;
             r_PromptMessage.Scales = new Vector2(1.5f, 1.5f);
             r_PromptMessage.Position = CenterOfViewPort - new Vector2(r_PromptMessage.Width / 2, 100);
 
-            r_TypedNameDisplay.TintColor = Color.White;
+            r_TypedNameDisplay.TintColor = Color.Gold;
             r_TypedNameDisplay.Scales = new Vector2(2f, 2f);
 
-            r_InfoMessage.TintColor = Color.Gray;
+            r_InfoMessage.TintColor = new Color(170, 185, 210);
             r_InfoMessage.Position = CenterOfViewPort + new Vector2(-r_InfoMessage.Width / 2, 80);
         }
 
@@ -74,6 +80,9 @@ Backspace to delete");
         {
             base.Update(gameTime);
 
+            m_PrevKeyboard = m_CurrKeyboard;
+            m_CurrKeyboard = Keyboard.GetState();
+
             // Blink the cursor
             m_CursorBlinkTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (m_CursorBlinkTimer >= k_CursorBlinkInterval)
@@ -83,40 +92,82 @@ Backspace to delete");
                 updateTypedDisplay();
             }
 
+            // Cancel / Back to Dashboard
+            if (isKeyPressed(Keys.Escape))
+            {
+                ExitScreen();
+                Cancelled?.Invoke();
+                return;
+            }
+
             // Check for letter keys A-Z
             for (Keys key = Keys.A; key <= Keys.Z; key++)
             {
-                if (InputManager.KeyPressed(key) && m_CurrentInput.Length < k_MaxNameLength)
+                if (isKeyPressed(key) && m_CurrentInput.Length < k_MaxNameLength)
                 {
                     m_CurrentInput += key.ToString();
                     updateTypedDisplay();
                 }
             }
 
+            // Check for number keys 0-9 (top row)
+            for (Keys key = Keys.D0; key <= Keys.D9; key++)
+            {
+                if (isKeyPressed(key) && m_CurrentInput.Length < k_MaxNameLength)
+                {
+                    m_CurrentInput += ((int)key - (int)Keys.D0).ToString();
+                    updateTypedDisplay();
+                }
+            }
+
+            // Check for numpad 0-9
+            for (Keys key = Keys.NumPad0; key <= Keys.NumPad9; key++)
+            {
+                if (isKeyPressed(key) && m_CurrentInput.Length < k_MaxNameLength)
+                {
+                    m_CurrentInput += ((int)key - (int)Keys.NumPad0).ToString();
+                    updateTypedDisplay();
+                }
+            }
+
+            // Space
+            if (isKeyPressed(Keys.Space) && m_CurrentInput.Length > 0 && m_CurrentInput.Length < k_MaxNameLength)
+            {
+                m_CurrentInput += " ";
+                updateTypedDisplay();
+            }
+
             // Backspace — delete last character
-            if (InputManager.KeyPressed(Keys.Back) && m_CurrentInput.Length > 0)
+            if (isKeyPressed(Keys.Back) && m_CurrentInput.Length > 0)
             {
                 m_CurrentInput = m_CurrentInput.Substring(0, m_CurrentInput.Length - 1);
                 updateTypedDisplay();
             }
 
             // Enter — confirm name
-            if (InputManager.KeyPressed(Keys.Enter))
+            if (isKeyPressed(Keys.Enter))
             {
                 confirmCurrentName();
             }
         }
 
+        private bool isKeyPressed(Keys i_Key)
+        {
+            bool direct = m_CurrKeyboard.IsKeyDown(i_Key) && m_PrevKeyboard.IsKeyUp(i_Key);
+            bool viaManager = InputManager != null && InputManager.KeyPressed(i_Key);
+            return direct || viaManager;
+        }
+
         private void confirmCurrentName()
         {
             // If empty, use default name
-            if (string.IsNullOrEmpty(m_CurrentInput))
+            if (string.IsNullOrWhiteSpace(m_CurrentInput))
             {
                 r_PlayerNames[m_CurrentPlayerIndex] = $"Player {m_CurrentPlayerIndex + 1}";
             }
             else
             {
-                r_PlayerNames[m_CurrentPlayerIndex] = m_CurrentInput;
+                r_PlayerNames[m_CurrentPlayerIndex] = m_CurrentInput.Trim();
             }
 
             m_CurrentPlayerIndex++;
@@ -139,6 +190,7 @@ Backspace to delete");
         private void updatePrompt()
         {
             r_PromptMessage.Content = $"Player {m_CurrentPlayerIndex + 1}, enter your name:";
+            r_PromptMessage.Position = CenterOfViewPort - new Vector2(r_PromptMessage.Width / 2, 100);
         }
 
         private void updateTypedDisplay()
@@ -150,10 +202,7 @@ Backspace to delete");
 
         private void onNamesEntered()
         {
-            if (NamesEntered != null)
-            {
-                NamesEntered.Invoke(r_PlayerNames);
-            }
+            NamesEntered?.Invoke(r_PlayerNames);
         }
     }
 }

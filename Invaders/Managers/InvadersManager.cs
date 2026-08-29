@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Infrastructure;
@@ -6,6 +7,7 @@ using Infrastructure.ObjectModel.Screens;
 using Invaders.Screens;
 using Invaders.Tetris;
 using Invaders.IcyTower;
+using Invaders.Snake;
 
 namespace Invaders.Managers
 {
@@ -20,6 +22,7 @@ namespace Invaders.Managers
         private const string k_SpaceInvadersTitle        = "Space Invaders";
         private const string k_TetrisTitle               = "Tetris";
         private const string k_IcyTowerTitle             = "Icy Tower";
+        private const string k_SnakeTitle                = "Snake";
 
         private readonly Background r_SpaceBackground;
         private readonly Background r_DashboardBackground;
@@ -65,6 +68,7 @@ namespace Invaders.Managers
             r_GamePickerScreen.SpaceInvadersSelected += launchSpaceInvaders;
             r_GamePickerScreen.TetrisSelected        += launchTetris;
             r_GamePickerScreen.IcyTowerSelected      += launchIcyTower;
+            r_GamePickerScreen.SnakeSelected         += launchSnake;
             r_GamePickerScreen.LeaderboardSelected   += launchLeaderboard;
 
             Window.Title = k_DashboardTitle;
@@ -92,24 +96,68 @@ namespace Invaders.Managers
 
         private void launchTetris()
         {
-            Window.Title = k_TetrisTitle;
-            r_DashboardBackground.Visible = false;
-            r_SpaceBackground.Visible     = false;
+            ensurePlayerNameThen(() =>
+            {
+                Window.Title = k_TetrisTitle;
+                r_DashboardBackground.Visible = false;
+                r_SpaceBackground.Visible     = false;
 
-            TetrisPlayScreen tetrisScreen = new TetrisPlayScreen(this);
-            tetrisScreen.BackToDashboard += returnToDashboard;
-            ScreensMananger.SetCurrentScreen(tetrisScreen);
+                TetrisPlayScreen tetrisScreen = new TetrisPlayScreen(this);
+                tetrisScreen.BackToDashboard += returnToDashboard;
+                ScreensMananger.SetCurrentScreen(tetrisScreen);
+            });
         }
 
         private void launchIcyTower()
         {
-            Window.Title = k_IcyTowerTitle;
-            r_DashboardBackground.Visible = false;
-            r_SpaceBackground.Visible     = false;
+            ensurePlayerNameThen(() =>
+            {
+                Window.Title = k_IcyTowerTitle;
+                r_DashboardBackground.Visible = false;
+                r_SpaceBackground.Visible     = false;
 
-            IcyTowerPlayScreen icyTowerScreen = new IcyTowerPlayScreen(this);
-            icyTowerScreen.BackToDashboard += returnToDashboard;
-            ScreensMananger.SetCurrentScreen(icyTowerScreen);
+                IcyTowerPlayScreen icyTowerScreen = new IcyTowerPlayScreen(this);
+                icyTowerScreen.BackToDashboard += returnToDashboard;
+                ScreensMananger.SetCurrentScreen(icyTowerScreen);
+            });
+        }
+
+        private void launchSnake()
+        {
+            ensurePlayerNameThen(() =>
+            {
+                Window.Title = k_SnakeTitle;
+                r_DashboardBackground.Visible = false;
+                r_SpaceBackground.Visible     = false;
+
+                SnakePlayScreen snakeScreen = new SnakePlayScreen(this);
+                snakeScreen.BackToDashboard += returnToDashboard;
+                ScreensMananger.SetCurrentScreen(snakeScreen);
+            });
+        }
+
+        private void ensurePlayerNameThen(Action i_OnReady)
+        {
+            if (PlayersManager.PlayerNames != null &&
+                PlayersManager.PlayerNames.Length > 0 &&
+                !string.IsNullOrWhiteSpace(PlayersManager.PlayerNames[0]))
+            {
+                i_OnReady();
+            }
+            else
+            {
+                NameEntryScreen nameEntry = new NameEntryScreen(this, eNumberOfPlayers.OnePlayer);
+                nameEntry.NamesEntered += (names) =>
+                {
+                    PlayersManager.SetPlayerNames(names);
+                    i_OnReady();
+                };
+                nameEntry.Cancelled += () =>
+                {
+                    returnToDashboard();
+                };
+                ScreensMananger.SetCurrentScreen(nameEntry);
+            }
         }
 
         private void launchLeaderboard()

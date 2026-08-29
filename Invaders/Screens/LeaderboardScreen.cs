@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Infrastructure.ObjectModel.Screens;
 using Infrastructure.Managers;
+using Infrastructure.ObjectModel.Screens;
 
 namespace Invaders.Screens
 {
@@ -17,8 +17,8 @@ namespace Invaders.Screens
         private SpriteFont m_Font;
         private Texture2D m_PixelTexture;
 
-        private int m_CurrentTab = 0; // 0 = All, 1 = Tetris, 2 = Icy Tower, 3 = Space Invaders
-        private readonly string[] r_Tabs = new string[] { "ALL GAMES", "TETRIS", "ICY TOWER", "SPACE INVADERS" };
+        private int m_CurrentTab = 0; // 0 = All, 1 = Tetris, 2 = Icy Tower, 3 = Snake, 4 = Space Invaders
+        private readonly string[] r_Tabs = new string[] { "ALL GAMES", "TETRIS", "ICY TOWER", "SNAKE", "SPACE INVADERS" };
 
         private KeyboardState m_CurrKeyboard;
         private KeyboardState m_PrevKeyboard;
@@ -99,8 +99,8 @@ namespace Invaders.Screens
             // Background dark overlay
             SpriteBatch.Draw(m_PixelTexture, new Rectangle(0, 0, vp.Width, vp.Height), new Color(8, 10, 18, 245));
 
-            int cardWidth = Math.Min(740, vp.Width - 40);
-            int cardHeight = Math.Min(540, vp.Height - 40);
+            int cardWidth = Math.Min(880, vp.Width - 40);
+            int cardHeight = Math.Min(570, vp.Height - 40);
             int cardX = (vp.Width - cardWidth) / 2;
             int cardY = (vp.Height - cardHeight) / 2;
 
@@ -111,26 +111,28 @@ namespace Invaders.Screens
             // Title
             string title = "ARCADE HALL OF FAME";
             Vector2 titleSize = m_Font.MeasureString(title) * 1.15f;
-            SpriteBatch.DrawString(m_Font, title, new Vector2(cardX + (cardWidth - titleSize.X) / 2, cardY + 20), Color.Gold, 0f, Vector2.Zero, 1.15f, SpriteEffects.None, 0f);
+            SpriteBatch.DrawString(m_Font, title, new Vector2(cardX + (cardWidth - titleSize.X) / 2, cardY + 18), Color.Gold, 0f, Vector2.Zero, 1.15f, SpriteEffects.None, 0f);
 
             // Tabs bar
-            drawTabs(cardX, cardY + 65, cardWidth);
+            drawTabs(cardX, cardY + 62, cardWidth);
 
             // Scores table
-            drawScoresTable(cardX + 25, cardY + 120, cardWidth - 50);
+            drawScoresTable(cardX + 25, cardY + 114, cardWidth - 50);
 
             // Footer hint
             string footer = "< / > or Tab : Switch Category   |   [Esc] Back";
             Vector2 footerSize = m_Font.MeasureString(footer) * 0.65f;
-            SpriteBatch.DrawString(m_Font, footer, new Vector2(cardX + (cardWidth - footerSize.X) / 2, cardY + cardHeight - 30), new Color(140, 155, 180), 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
+            SpriteBatch.DrawString(m_Font, footer, new Vector2(cardX + (cardWidth - footerSize.X) / 2, cardY + cardHeight - 26), new Color(140, 155, 180), 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
 
             SpriteBatch.End();
         }
 
         private void drawTabs(int i_CardX, int i_Y, int i_CardWidth)
         {
-            int tabWidth = 150;
-            int spacing = 10;
+            int spacing = 8;
+            int totalPadding = 40; // 20px padding inside card edges
+            int availableWidth = i_CardWidth - totalPadding;
+            int tabWidth = (availableWidth - (r_Tabs.Length - 1) * spacing) / r_Tabs.Length;
             int totalTabsWidth = r_Tabs.Length * tabWidth + (r_Tabs.Length - 1) * spacing;
             int startX = i_CardX + (i_CardWidth - totalTabsWidth) / 2;
 
@@ -146,9 +148,9 @@ namespace Invaders.Screens
                 SpriteBatch.Draw(m_PixelTexture, tabRect, tabBg);
                 drawRectOutline(tabRect, tabBorder, isSelected ? 2 : 1);
 
-                Vector2 textSize = m_Font.MeasureString(r_Tabs[i]) * 0.62f;
+                Vector2 textSize = m_Font.MeasureString(r_Tabs[i]) * 0.58f;
                 Vector2 textPos = new Vector2(tabRect.X + (tabRect.Width - textSize.X) / 2, tabRect.Y + (tabRect.Height - textSize.Y) / 2);
-                SpriteBatch.DrawString(m_Font, r_Tabs[i], textPos, textColor, 0f, Vector2.Zero, 0.62f, SpriteEffects.None, 0f);
+                SpriteBatch.DrawString(m_Font, r_Tabs[i], textPos, textColor, 0f, Vector2.Zero, 0.58f, SpriteEffects.None, 0f);
             }
         }
 
@@ -159,12 +161,12 @@ namespace Invaders.Screens
             SpriteBatch.Draw(m_PixelTexture, headerRect, new Color(30, 36, 60, 230));
             drawRectOutline(headerRect, new Color(50, 65, 100, 180), 1);
 
-            int colRank = i_X + 15;
-            int colName = i_X + 80;
-            int colGame = i_X + 240;
-            int colScore = i_X + 410;
-            int colLevel = i_X + 510;
-            int colDate = i_X + 585;
+            int colRank = i_X + 20;
+            int colName = i_X + 95;
+            int colGame = i_X + 280;
+            int colScore = i_X + 485;
+            int colLevel = i_X + 615;
+            int colDate = i_X + 720;
 
             float headerScale = 0.65f;
             Color headerColor = Color.Cyan;
@@ -172,7 +174,7 @@ namespace Invaders.Screens
             SpriteBatch.DrawString(m_Font, "PLAYER", new Vector2(colName, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
             SpriteBatch.DrawString(m_Font, "GAME", new Vector2(colGame, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
             SpriteBatch.DrawString(m_Font, "SCORE", new Vector2(colScore, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
-            SpriteBatch.DrawString(m_Font, "LVL/FLR", new Vector2(colLevel - 10, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
+            SpriteBatch.DrawString(m_Font, "LVL/FLR/APPLES", new Vector2(colLevel - 20, i_Y + 6), headerColor, 0f, Vector2.Zero, 0.58f, SpriteEffects.None, 0f);
             SpriteBatch.DrawString(m_Font, "DATE", new Vector2(colDate, i_Y + 6), headerColor, 0f, Vector2.Zero, headerScale, SpriteEffects.None, 0f);
 
             // Query scores based on active tab
@@ -180,7 +182,8 @@ namespace Invaders.Screens
             {
                 1 => "Tetris",
                 2 => "Icy Tower",
-                3 => "Space Invaders",
+                3 => "Snake",
+                4 => "Space Invaders",
                 _ => null
             };
             List<ScoreEntry> scores = r_ScoresDatabase.GetTopScores(k_TopScoresCount, gameFilter);
@@ -199,7 +202,7 @@ namespace Invaders.Screens
             for (int i = 0; i < scores.Count; i++)
             {
                 ScoreEntry entry = scores[i];
-                Rectangle rowRect = new Rectangle(i_X, rowY + i * 34, i_Width, 30);
+                Rectangle rowRect = new Rectangle(i_X, rowY + i * 35, i_Width, 31);
 
                 if (i % 2 == 1)
                 {
@@ -220,7 +223,7 @@ namespace Invaders.Screens
                 SpriteBatch.DrawString(m_Font, nameStr, new Vector2(colName, rowRect.Y + 6), rowTextColor, 0f, Vector2.Zero, rowScale, SpriteEffects.None, 0f);
                 SpriteBatch.DrawString(m_Font, gameStr, new Vector2(colGame, rowRect.Y + 6), new Color(160, 180, 220), 0f, Vector2.Zero, rowScale, SpriteEffects.None, 0f);
                 SpriteBatch.DrawString(m_Font, scoreStr, new Vector2(colScore, rowRect.Y + 6), Color.Gold, 0f, Vector2.Zero, rowScale, SpriteEffects.None, 0f);
-                SpriteBatch.DrawString(m_Font, lvlStr, new Vector2(colLevel, rowRect.Y + 6), Color.Cyan, 0f, Vector2.Zero, rowScale, SpriteEffects.None, 0f);
+                SpriteBatch.DrawString(m_Font, lvlStr, new Vector2(colLevel + 10, rowRect.Y + 6), Color.Cyan, 0f, Vector2.Zero, rowScale, SpriteEffects.None, 0f);
                 SpriteBatch.DrawString(m_Font, dateStr, new Vector2(colDate, rowRect.Y + 6), new Color(130, 140, 165), 0f, Vector2.Zero, 0.6f, SpriteEffects.None, 0f);
             }
         }
