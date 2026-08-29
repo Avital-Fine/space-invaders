@@ -158,7 +158,9 @@ namespace Invaders.Managers
 
         private void launchLeaderboard()
         {
-            ScreensMananger.SetCurrentScreen(new LeaderboardScreen(this));
+            LeaderboardScreen leaderboard = new LeaderboardScreen(this);
+            leaderboard.BackToDashboard += returnToDashboard;
+            ScreensMananger.SetCurrentScreen(leaderboard);
         }
 
         private void returnToDashboard()

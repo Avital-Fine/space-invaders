@@ -10,6 +10,8 @@ namespace Invaders.Screens
 {
     public class LeaderboardScreen : GameScreen
     {
+        public event Action BackToDashboard;
+
         private const string k_FontType = "Consolas";
         private const int k_TopScoresCount = 8;
 
@@ -22,13 +24,20 @@ namespace Invaders.Screens
 
         private KeyboardState m_CurrKeyboard;
         private KeyboardState m_PrevKeyboard;
+        private MouseState m_CurrMouse;
+        private MouseState m_PrevMouse;
         private GamePadState m_CurrGamePad;
         private GamePadState m_PrevGamePad;
+
+        private bool m_EnterWasReleased;
+        private int m_FramesActive;
 
         public LeaderboardScreen(Game i_Game, int i_InitialTab = 0) : base(i_Game)
         {
             r_ScoresDatabase = new ScoresDatabase();
             m_CurrentTab = Math.Clamp(i_InitialTab, 0, r_Tabs.Length - 1);
+            m_EnterWasReleased = false;
+            m_FramesActive = 0;
         }
 
         public override void Initialize()
@@ -37,7 +46,10 @@ namespace Invaders.Screens
             this.BlendState = BlendState.AlphaBlend;
 
             m_CurrKeyboard = m_PrevKeyboard = Keyboard.GetState();
+            m_CurrMouse = m_PrevMouse = Mouse.GetState();
             m_CurrGamePad = m_PrevGamePad = GamePad.GetState(PlayerIndex.One);
+            m_EnterWasReleased = false;
+            m_FramesActive = 0;
         }
 
         protected override void LoadContent()
@@ -53,15 +65,63 @@ namespace Invaders.Screens
         {
             base.Update(i_GameTime);
 
+            m_FramesActive++;
+
             m_PrevKeyboard = m_CurrKeyboard;
             m_CurrKeyboard = Keyboard.GetState();
+
+            m_PrevMouse = m_CurrMouse;
+            m_CurrMouse = Mouse.GetState();
+
             m_PrevGamePad = m_CurrGamePad;
             m_CurrGamePad = GamePad.GetState(PlayerIndex.One);
 
-            // Exit back to previous screen
-            if (isPressed(Keys.Escape) || isPressed(Keys.Back) || isPadPressed(Buttons.Back) || isPadPressed(Buttons.B))
+            if (m_CurrKeyboard.IsKeyUp(Keys.Enter) && m_CurrKeyboard.IsKeyUp(Keys.Space))
+            {
+                m_EnterWasReleased = true;
+            }
+
+            Viewport vp = GraphicsDevice.Viewport;
+            int cardWidth = Math.Min(880, vp.Width - 40);
+            int cardHeight = Math.Min(570, vp.Height - 40);
+            int cardX = (vp.Width - cardWidth) / 2;
+            int cardY = (vp.Height - cardHeight) / 2;
+            Rectangle backBtnRect = new Rectangle(cardX + (cardWidth - 160) / 2, cardY + cardHeight - 38, 160, 30);
+
+            bool mouseClickedBack = m_CurrMouse.LeftButton == ButtonState.Pressed &&
+                                   m_PrevMouse.LeftButton == ButtonState.Released &&
+                                   backBtnRect.Contains(m_CurrMouse.Position);
+
+            // Tab click detection
+            if (m_CurrMouse.LeftButton == ButtonState.Pressed && m_PrevMouse.LeftButton == ButtonState.Released)
+            {
+                int spacing = 8;
+                int totalPadding = 40;
+                int availableWidth = cardWidth - totalPadding;
+                int tabWidth = (availableWidth - (r_Tabs.Length - 1) * spacing) / r_Tabs.Length;
+                int totalTabsWidth = r_Tabs.Length * tabWidth + (r_Tabs.Length - 1) * spacing;
+                int startX = cardX + (cardWidth - totalTabsWidth) / 2;
+                int tabY = cardY + 62;
+
+                for (int i = 0; i < r_Tabs.Length; i++)
+                {
+                    Rectangle tabRect = new Rectangle(startX + i * (tabWidth + spacing), tabY, tabWidth, 32);
+                    if (tabRect.Contains(m_CurrMouse.Position))
+                    {
+                        m_CurrentTab = i;
+                        break;
+                    }
+                }
+            }
+
+            // Return to menu on Escape, Backspace, or Button Click immediately; or on Enter/Space once released
+            bool enterExit = m_EnterWasReleased && m_FramesActive > 5 && (isPressed(Keys.Enter) || isPressed(Keys.Space) || isPadPressed(Buttons.A) || isPadPressed(Buttons.Start));
+            bool instantExit = isPressed(Keys.Escape) || isPressed(Keys.Back) || isPadPressed(Buttons.Back) || isPadPressed(Buttons.B) || mouseClickedBack;
+
+            if (instantExit || enterExit)
             {
                 ExitScreen();
+                BackToDashboard?.Invoke();
                 return;
             }
 
@@ -119,10 +179,18 @@ namespace Invaders.Screens
             // Scores table
             drawScoresTable(cardX + 25, cardY + 114, cardWidth - 50);
 
-            // Footer hint
-            string footer = "< / > or Tab : Switch Category   |   [Esc] Back";
-            Vector2 footerSize = m_Font.MeasureString(footer) * 0.65f;
-            SpriteBatch.DrawString(m_Font, footer, new Vector2(cardX + (cardWidth - footerSize.X) / 2, cardY + cardHeight - 26), new Color(140, 155, 180), 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
+            // Clickable Back Button
+            Rectangle backBtnRect = new Rectangle(cardX + (cardWidth - 160) / 2, cardY + cardHeight - 38, 160, 30);
+            bool isBackHovered = backBtnRect.Contains(m_CurrMouse.Position);
+            Color backBtnBg = isBackHovered ? new Color(70, 90, 150) : new Color(35, 45, 80);
+
+            SpriteBatch.Draw(m_PixelTexture, backBtnRect, backBtnBg);
+            drawRectOutline(backBtnRect, Color.Gold, 1);
+
+            string btnText = "[ BACK TO MENU ]";
+            Vector2 btnTextSize = m_Font.MeasureString(btnText) * 0.65f;
+            Vector2 btnTextPos = new Vector2(backBtnRect.X + (backBtnRect.Width - btnTextSize.X) / 2, backBtnRect.Y + (backBtnRect.Height - btnTextSize.Y) / 2);
+            SpriteBatch.DrawString(m_Font, btnText, btnTextPos, isBackHovered ? Color.Gold : Color.White, 0f, Vector2.Zero, 0.65f, SpriteEffects.None, 0f);
 
             SpriteBatch.End();
         }
@@ -130,7 +198,7 @@ namespace Invaders.Screens
         private void drawTabs(int i_CardX, int i_Y, int i_CardWidth)
         {
             int spacing = 8;
-            int totalPadding = 40; // 20px padding inside card edges
+            int totalPadding = 40;
             int availableWidth = i_CardWidth - totalPadding;
             int tabWidth = (availableWidth - (r_Tabs.Length - 1) * spacing) / r_Tabs.Length;
             int totalTabsWidth = r_Tabs.Length * tabWidth + (r_Tabs.Length - 1) * spacing;

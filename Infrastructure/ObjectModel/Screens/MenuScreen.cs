@@ -20,6 +20,8 @@ namespace Infrastructure.ObjectModel.Screens
         private GamePadState m_CurrGamePad;
         private GamePadState m_PrevGamePad;
 
+        protected virtual bool AllowEscapeExit => true;
+
         public static SoundEffectInstance TransitionSoundEffect { set { s_TransitionSoundEffect = value; } }
 
         public MenuScreen(Game i_Game, string i_Title) : base(i_Game)
@@ -66,6 +68,11 @@ namespace Infrastructure.ObjectModel.Screens
         {
             base.Update(i_GameTime);
 
+            if (!this.HasFocus)
+            {
+                return;
+            }
+
             m_PrevKeyboard = m_CurrKeyboard;
             m_CurrKeyboard = Keyboard.GetState();
 
@@ -92,7 +99,7 @@ namespace Infrastructure.ObjectModel.Screens
                     r_Options[m_ActiveItemIndex].TriggerClick();
                 }
             }
-            else if (backPressed)
+            else if (backPressed && AllowEscapeExit)
             {
                 ExitScreen();
             }

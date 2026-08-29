@@ -20,6 +20,8 @@ namespace Invaders.Screens
         private const string k_Title    = "Game Dashboard";
         private const string k_FontType = "Consolas";
 
+        protected override bool AllowEscapeExit => false;
+
         // Colors for the dark dashboard theme
         private static readonly Color s_TitleColor       = Color.Gold;
         private static readonly Color s_TextActive       = Color.White;

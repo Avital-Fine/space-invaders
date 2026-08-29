@@ -14,7 +14,7 @@ namespace Infrastructure.ObjectModel.Screens
         private const string k_AssetName = @"Sprites\Button";
         private const string k_Font = "Consolas";
         private const float k_InactiveOpacity = 0.5f;
-        private const float k_ActiveOpacity = 1;
+        private const float k_ActiveOpacity = 1.0f;
         protected readonly MenuScreen r_MenuScreen;
         protected readonly string r_Title;
         private readonly Keys r_SelectTrigger1 = Keys.Enter;
@@ -23,6 +23,7 @@ namespace Infrastructure.ObjectModel.Screens
         private readonly Text r_Text;
         private bool m_HasFocus;
         private int m_ListIndex;
+        private Color m_BaseButtonColor = Color.White;
         private MouseState m_PrevMouseState;
 
         protected string Content 
@@ -38,7 +39,14 @@ namespace Infrastructure.ObjectModel.Screens
         public float Height {  get {  return r_Button.Height; }}
         public float Width {  get {  return r_Button.Width; }}
         public Color TextColor { set { r_Text.TintColor = value; } }
-        public Color ButtonTintColor { set { r_Button.TintColor = value; } }
+        public Color ButtonTintColor 
+        { 
+            set 
+            { 
+                m_BaseButtonColor = value;
+                applyVisualState();
+            } 
+        }
         public int ListIndex { get { return m_ListIndex; } set { m_ListIndex = value; } }
         public bool HasFocus 
         { 
@@ -77,9 +85,9 @@ namespace Infrastructure.ObjectModel.Screens
 
             initButtonAnimations();
             centralize();
-            deactivate();
             r_Text.TintColor = Color.Black;
             r_MenuScreen.AddOption(this);
+            applyVisualState();
             m_PrevMouseState = Mouse.GetState();
         }
 
@@ -98,6 +106,11 @@ namespace Infrastructure.ObjectModel.Screens
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+
+            if (!r_MenuScreen.HasFocus)
+            {
+                return;
+            }
 
             MouseState currMouse = Mouse.GetState();
             bool isHovered = r_Button.Bounds.Contains(currMouse.Position);
@@ -137,17 +150,35 @@ namespace Infrastructure.ObjectModel.Screens
             return viaManager || directEnter || padA;
         }
 
+        private void applyVisualState()
+        {
+            if (m_HasFocus)
+            {
+                activate();
+            }
+            else
+            {
+                deactivate();
+            }
+        }
+
         private void deactivate()
         {
+            Color c = m_BaseButtonColor;
+            c.A = (byte)(k_InactiveOpacity * 255);
+            r_Button.TintColor = c;
             r_Button.Opacity = k_InactiveOpacity;
-            r_Button.AnimationsManager["Pulse"].Pause();
-            r_Button.AnimationsManager["Pulse"].Reset();
+            r_Button.AnimationsManager?["Pulse"]?.Pause();
+            r_Button.AnimationsManager?["Pulse"]?.Reset();
         }
 
         private void activate()
         {
+            Color c = m_BaseButtonColor;
+            c.A = (byte)(k_ActiveOpacity * 255);
+            r_Button.TintColor = c;
             r_Button.Opacity = k_ActiveOpacity;
-            r_Button.AnimationsManager["Pulse"].Resume();
+            r_Button.AnimationsManager?["Pulse"]?.Resume();
         }
 
         protected void OnClicked()
@@ -158,15 +189,7 @@ namespace Infrastructure.ObjectModel.Screens
         private void onFocusChange()
         {
             FocusChange?.Invoke(this, EventArgs.Empty);
-
-            if (m_HasFocus)
-            {
-                activate();
-            }
-            else
-            {
-                deactivate();
-            }
+            applyVisualState();
         }
     }
 }
